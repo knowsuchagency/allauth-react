@@ -1,0 +1,15 @@
+{
+  "name": "allauth-react",
+  "version": "0.1.0",
+  "description": "A react client library for django-allauth",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Stephan Fitzpatrick",
+  "license": "MIT",
+  "dependencies": {
+    "@knowsuchagency/allauth-fetch": "npm:@jsr/knowsuchagency__allauth-fetch@^0.1.0",
+    "react": "^18.3.1"
+  }
+}
