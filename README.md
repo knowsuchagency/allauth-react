@@ -89,9 +89,6 @@ Returns:
 - `signup`: A function to initiate the signup process. It accepts an object with `email` (optional), `username` (optional), and `password` (required) properties.
 - `logout`: A function to log out the currently authenticated user.
 
-## Error Handling
-
-The module logs errors to the console if there are any issues during the authentication process. You can customize the error handling logic by modifying the `catch` blocks in the `login`, `signup`, and `logout` functions.
 
 ## Example
 
