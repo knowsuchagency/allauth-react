@@ -1,6 +1,6 @@
 # Django Allauth React Module
 
-This module provides a React context for handling user authentication using the `AllauthClient` class. It allows you to easily manage authentication state and perform authentication actions within your React components.
+This module provides a React context for handling user authentication using [Django Allauth](https://allauth.org). It allows you to easily manage authentication state and perform authentication actions within your React components.
 
 ## Installation
 
