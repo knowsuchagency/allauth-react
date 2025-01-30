@@ -1,154 +1,234 @@
 # Django Allauth React Module
 
-This module provides a React context for handling user authentication using [Django Allauth](https://allauth.org). It allows you to easily manage authentication state and perform authentication actions within your React components.
+React hooks and components for integrating with django-allauth's headless API.
 
 ## Installation
 
-```shell
+```bash
 npx jsr add @knowsuchagency/allauth-react
 ```
 
-## Usage
+This package also requires `@knowsuchagency/allauth-fetch` as a peer dependency, which will be installed automatically.
 
-1. Wrap your application or the components that require authentication with the `AuthProvider` component. Pass the necessary props:
-
-   - `apiBaseUrl`: The base URL of your authentication API.
-   - `client`: The client type, either `'app'` or `'browser'`.
-
-   Example:
-
-   ```jsx
-   import React from "react";
-   import { AuthProvider } from "@knowsuchagency/allauth-react";
-
-   const App = () => {
-     return (
-       <AuthProvider apiBaseUrl="https://api.example.com" client="browser">
-         {/* Your application components */}
-       </AuthProvider>
-     );
-   };
-
-   export default App;
-   ```
-
-2. Use the `useAuth` hook in your components to access the authentication state and functions.
-
-   Example:
-
-   ```jsx
-   import React from "react";
-   import { useAuth } from "@knowsuchagency/allauth-react";
-
-   const LoginForm = () => {
-     const { login, isAuthenticated, user } = useAuth();
-
-     const handleLogin = async (e: React.FormEvent) => {
-       e.preventDefault();
-       const email = "user@example.com";
-       const password = "password123";
-       await login({ email, password });
-     };
-
-     if (isAuthenticated) {
-       return <div>Welcome, {user?.display}!</div>;
-     }
-
-     return (
-       <form onSubmit={handleLogin}>
-         {/* Login form fields */}
-         <button type="submit">Login</button>
-       </form>
-     );
-   };
-
-   export default LoginForm;
-   ```
-
-## API
-
-### AuthProvider
-
-The `AuthProvider` component is responsible for managing the authentication state and providing the authentication context to its children components.
-
-Props:
-
-- `children` (required): The child components that will have access to the authentication context.
-- `apiBaseUrl` (required): The base URL of your authentication API.
-- `client` (required): The client type, either `'app'` or `'browser'`.
-
-### useAuth
-
-The `useAuth` hook allows you to access the authentication state and functions within your components.
-
-Returns:
-
-- `user`: The currently authenticated user object, or `null` if not authenticated.
-- `isAuthenticated`: A boolean indicating whether the user is authenticated.
-- `login`: A function to initiate the login process. It accepts an object with `username` (optional), `email` (optional), and `password` (required) properties.
-- `signup`: A function to initiate the signup process. It accepts an object with `email` (optional), `username` (optional), and `password` (required) properties.
-- `logout`: A function to log out the currently authenticated user.
-
-
-## Example
-
-Here's a complete example of how to use the authentication context module in a React application:
+## Quick Start
 
 ```jsx
-// App.tsx
-import React from 'react';
-import { AuthProvider } from "@knowsuchagency/allauth-react";
-import LoginForm from './LoginForm';
+import { AllauthProvider, useAllauth } from '@knowsuchagency/allauth-react';
+import { AllauthClient } from '@knowsuchagency/allauth-fetch';
 
-const App = () => {
+// Initialize the client
+const client = new AllauthClient('browser', 'https://api.example.com');
+
+function App() {
   return (
-    <AuthProvider apiBaseUrl="https://api.example.com" client="browser">
-      <div>
-        <h1>My App</h1>
-        <LoginForm />
-      </div>
-    </AuthProvider>
+    <AllauthProvider client={client}>
+      <AuthenticatedApp />
+    </AllauthProvider>
   );
-};
+}
 
-export default App;
+function AuthenticatedApp() {
+  const { user, isAuthenticated, login, logout } = useAllauth();
 
-// LoginForm.tsx
-import React from 'react';
-import { useAuth } from "@knowsuchagency/allauth-react";
-
-const LoginForm = () => {
-  const { login, isAuthenticated, user, logout } = useAuth();
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const email = 'user@example.com';
-    const password = 'password123';
-    await login({ email, password });
-  };
-
-  const handleLogout = async () => {
-    await logout();
-  };
-
-  if (isAuthenticated) {
+  if (!isAuthenticated) {
     return (
-      <div>
-        <p>Welcome, {user?.display}!</p>
-        <button onClick={handleLogout}>Logout</button>
-      </div>
+      <LoginForm onSubmit={async (email, password) => {
+        await login({ email, password });
+      }} />
     );
   }
 
   return (
-    <form onSubmit={handleLogin}>
-      {/* Login form fields */}
-      <button type="submit">Login</button>
-    </form>
+    <div>
+      <h1>Welcome, {user.display}!</h1>
+      <button onClick={logout}>Logout</button>
+    </div>
   );
-};
-
-export default LoginForm;
+}
 ```
 
-In this example, the `App` component wraps the application with the `AuthProvider`, passing the necessary props. The `LoginForm` component uses the `useAuth` hook to access the authentication state and functions. It renders a login form if the user is not authenticated, and a welcome message with a logout button if the user is authenticated.
+## Core Features
+
+### Authentication Provider
+
+The `AllauthProvider` component sets up the authentication context for your application:
+
+```jsx
+import { AllauthProvider } from '@knowsuchagency/allauth-react';
+import { AllauthClient } from '@knowsuchagency/allauth-fetch';
+
+const client = new AllauthClient('browser', 'https://api.example.com');
+
+function App() {
+  return (
+    <AllauthProvider client={client}>
+      {/* Your app components */}
+    </AllauthProvider>
+  );
+}
+```
+
+### useAllauth Hook
+
+The primary hook for accessing authentication state and methods:
+
+```jsx
+const {
+  user,                    // Current user object or null
+  isAuthenticated,         // Boolean indicating auth status
+  isLoading,              // Boolean indicating loading state
+  login,                  // Function to log in
+  logout,                 // Function to log out
+  signup,                 // Function to register new users
+  requestPasswordReset,   // Function to request password reset
+  resetPassword,          // Function to reset password
+  reauthenticate,        // Function to reauthenticate user
+  verifyEmail,           // Function to verify email
+  changePassword,        // Function to change password
+  refreshAuthStatus      // Function to refresh auth status
+} = useAllauth();
+```
+
+### Email Management
+
+Use the `useEmailAddresses` hook to manage email addresses:
+
+```jsx
+const {
+  emailAddresses,         // Array of email addresses
+  isLoading,             // Boolean indicating loading state
+  addEmail,              // Function to add new email
+  removeEmail,           // Function to remove email
+  setPrimaryEmail,       // Function to set primary email
+  refresh               // Function to refresh email list
+} = useEmailAddresses();
+
+// Example usage
+await addEmail('new@example.com');
+await setPrimaryEmail('primary@example.com');
+```
+
+### Two-Factor Authentication
+
+Use the `useAuthenticators` hook to manage 2FA:
+
+```jsx
+const {
+  authenticators,         // Array of authenticator devices
+  isLoading,             // Boolean indicating loading state
+  setupTOTP,             // Function to set up TOTP
+  deactivateTOTP,        // Function to deactivate TOTP
+  refresh               // Function to refresh authenticators
+} = useAuthenticators();
+
+// Example usage
+await setupTOTP('123456'); // Setup TOTP with verification code
+```
+
+### Social Provider Accounts
+
+Use the `useProviderAccounts` hook to manage connected social accounts:
+
+```jsx
+const {
+  accounts,              // Array of connected provider accounts
+  isLoading,             // Boolean indicating loading state
+  disconnectAccount,     // Function to disconnect account
+  refresh               // Function to refresh accounts
+} = useProviderAccounts();
+
+// Example usage
+await disconnectAccount('google', 'account123');
+```
+
+## Complete Authentication Flow Example
+
+Here's a complete example showing a login flow with email verification:
+
+```jsx
+function LoginPage() {
+  const { login } = useAllauth();
+  const [error, setError] = useState(null);
+
+  const handleSubmit = async (email, password) => {
+    try {
+      await login({ email, password });
+    } catch (err) {
+      if (err.code === 'email_verification_required') {
+        // Handle email verification flow
+        navigate('/verify-email');
+      } else {
+        setError(err.message);
+      }
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      {/* Form fields */}
+    </form>
+  );
+}
+```
+
+## Error Handling
+
+The library throws errors that match the django-allauth API responses. Always wrap async operations in try-catch blocks:
+
+```jsx
+try {
+  await login({ email, password });
+} catch (error) {
+  // Handle specific error cases
+  switch (error.code) {
+    case 'invalid_credentials':
+      setError('Invalid email or password');
+      break;
+    case 'email_verification_required':
+      navigate('/verify-email');
+      break;
+    default:
+      setError('An unexpected error occurred');
+  }
+}
+```
+
+## TypeScript Support
+
+The library is written in TypeScript and provides full type definitions. Import types directly:
+
+```typescript
+import type { User, EmailAddress, Authenticator } from '@knowsuchagency/allauth-react';
+
+// Example type usage
+const handleUser = (user: User) => {
+  console.log(user.display);
+};
+```
+
+## Testing
+
+When testing components that use these hooks, wrap them in the `AllauthProvider`:
+
+```jsx
+import { render, screen } from '@testing-library/react';
+import { AllauthProvider } from '@knowsuchagency/allauth-react';
+
+const mockClient = new AllauthClient('browser', 'http://test.com');
+
+test('renders authenticated content', () => {
+  render(
+    <AllauthProvider client={mockClient}>
+      <YourComponent />
+    </AllauthProvider>
+  );
+});
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+MIT
