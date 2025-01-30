@@ -47,7 +47,10 @@ interface AllauthProviderProps {
 
 const AllauthContext = createContext<AllauthContextType | null>(null);
 
-export function AllauthProvider({ client, children }: AllauthProviderProps) {
+export function AllauthProvider({
+  client,
+  children,
+}: AllauthProviderProps): React.ReactElement {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -162,7 +165,7 @@ export function AllauthProvider({ client, children }: AllauthProviderProps) {
   return React.createElement(AllauthContext.Provider, { value }, children);
 }
 
-export function useAllauth() {
+export function useAllauth(): AllauthContextType {
   const context = useContext(AllauthContext);
   if (!context) {
     throw new Error("useAllauth must be used within an AllauthProvider");
@@ -170,8 +173,32 @@ export function useAllauth() {
   return context;
 }
 
-// Custom hooks for specific functionality
-export function useEmailAddresses() {
+// First, let's define the return type interfaces
+interface UseEmailAddressesReturn {
+  emailAddresses: EmailAddressesResponse["data"];
+  isLoading: boolean;
+  addEmail: (email: string) => Promise<void>;
+  removeEmail: (email: string) => Promise<void>;
+  setPrimaryEmail: (email: string) => Promise<void>;
+  refresh: () => Promise<void>;
+}
+
+interface UseAuthenticatorsReturn {
+  authenticators: AuthenticatorsResponse["data"];
+  isLoading: boolean;
+  setupTOTP: (code: string) => Promise<void>;
+  deactivateTOTP: () => Promise<void>;
+  refresh: () => Promise<void>;
+}
+
+interface UseProviderAccountsReturn {
+  accounts: ProviderAccountsResponse["data"];
+  isLoading: boolean;
+  disconnectAccount: (provider: string, account: string) => Promise<void>;
+  refresh: () => Promise<void>;
+}
+
+export function useEmailAddresses(): UseEmailAddressesReturn {
   const { client } = useAllauth();
   const [emailAddresses, setEmailAddresses] = useState<
     EmailAddressesResponse["data"]
@@ -228,7 +255,7 @@ export function useEmailAddresses() {
   };
 }
 
-export function useAuthenticators() {
+export function useAuthenticators(): UseAuthenticatorsReturn {
   const { client } = useAllauth();
   const [authenticators, setAuthenticators] = useState<
     AuthenticatorsResponse["data"]
@@ -271,7 +298,7 @@ export function useAuthenticators() {
   };
 }
 
-export function useProviderAccounts() {
+export function useProviderAccounts(): UseProviderAccountsReturn {
   const { client } = useAllauth();
   const [accounts, setAccounts] = useState<ProviderAccountsResponse["data"]>(
     []
