@@ -5,10 +5,10 @@ React hooks and components for integrating with django-allauth's headless API.
 ## Installation
 
 ```bash
-npx jsr add @knowsuchagency/allauth-react
+npx jsr add @knowsuchagency/allauth-react @knowsuchagency/allauth-fetch
 ```
 
-This package also requires `@knowsuchagency/allauth-fetch` as a peer dependency, which will be installed automatically.
+This package also requires `@knowsuchagency/allauth-fetch` as a peer dependency.
 
 ## Quick Start
 
