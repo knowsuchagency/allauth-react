@@ -65,7 +65,7 @@ export function AllauthProvider({
     }
 
     else if (baseUrl) {
-      return new AllauthClient(baseUrl, csrfTokenEndpoint, client);
+      return new AllauthClient(baseUrl, csrfTokenEndpoint, clientType);
     }
 
     throw new Error(
