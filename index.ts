@@ -64,12 +64,12 @@ export function AllauthProvider({
       return client;
     }
 
-    if (clientType && baseUrl) {
+    else if (baseUrl) {
       return new AllauthClient(baseUrl, csrfTokenEndpoint, client);
     }
 
     throw new Error(
-      "Either client or both clientType and baseUrl must be provided"
+      "Either client or baseUrl must be provided"
     );
   }, [client, clientType, baseUrl, csrfTokenEndpoint]);
 
