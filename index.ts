@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useEffect,
   useState,
+  useMemo,
 } from "react";
 import {
   AllauthClient,
@@ -41,7 +42,10 @@ interface AllauthContextType {
 }
 
 interface AllauthProviderProps {
-  client: AllauthClient;
+  client?: AllauthClient;
+  clientType?: "browser" | "app";
+  baseUrl?: string;
+  csrfTokenEndpoint?: string;
   children: React.ReactNode;
 }
 
@@ -49,15 +53,33 @@ const AllauthContext = createContext<AllauthContextType | null>(null);
 
 export function AllauthProvider({
   client,
+  clientType,
+  baseUrl,
+  csrfTokenEndpoint,
   children,
 }: AllauthProviderProps): React.ReactElement {
+  // Create client if not directly provided
+  const allauthClient = useMemo(() => {
+    if (client) {
+      return client;
+    }
+
+    if (clientType && baseUrl) {
+      return new AllauthClient(clientType, baseUrl, csrfTokenEndpoint);
+    }
+
+    throw new Error(
+      "Either client or both clientType and baseUrl must be provided"
+    );
+  }, [client, clientType, baseUrl, csrfTokenEndpoint]);
+
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const refreshAuthStatus = useCallback(async () => {
     try {
-      const response = await client.getAuthenticationStatus();
+      const response = await allauthClient.getAuthenticationStatus();
       if ("data" in response && "user" in response.data) {
         setUser(response.data.user);
         setIsAuthenticated(true);
@@ -70,7 +92,7 @@ export function AllauthProvider({
       setIsAuthenticated(false);
     }
     setIsLoading(false);
-  }, [client]);
+  }, [allauthClient]);
 
   useEffect(() => {
     refreshAuthStatus();
@@ -78,7 +100,7 @@ export function AllauthProvider({
 
   const login = useCallback(
     async (data: { username?: string; email?: string; password: string }) => {
-      const response = await client.login(data);
+      const response = await allauthClient.login(data);
       if ("data" in response && "user" in response.data) {
         setUser(response.data.user);
         setIsAuthenticated(true);
@@ -86,18 +108,18 @@ export function AllauthProvider({
         throw new Error("Login failed");
       }
     },
-    [client]
+    [allauthClient]
   );
 
   const logout = useCallback(async () => {
-    await client.logout();
+    await allauthClient.logout();
     setUser(null);
     setIsAuthenticated(false);
-  }, [client]);
+  }, [allauthClient]);
 
   const signup = useCallback(
     async (data: { email?: string; username?: string; password: string }) => {
-      const response = await client.signup(data);
+      const response = await allauthClient.signup(data);
       if ("data" in response && "user" in response.data) {
         setUser(response.data.user);
         setIsAuthenticated(true);
@@ -105,49 +127,49 @@ export function AllauthProvider({
         throw new Error("Signup failed");
       }
     },
-    [client]
+    [allauthClient]
   );
 
   const requestPasswordReset = useCallback(
     async (email: string) => {
-      await client.requestPassword({ email });
+      await allauthClient.requestPassword({ email });
     },
-    [client]
+    [allauthClient]
   );
 
   const resetPassword = useCallback(
     async (key: string, password: string) => {
-      await client.resetPassword({ key, password });
+      await allauthClient.resetPassword({ key, password });
     },
-    [client]
+    [allauthClient]
   );
 
   const reauthenticate = useCallback(
     async (password: string) => {
-      await client.reauthenticate({ password });
+      await allauthClient.reauthenticate({ password });
     },
-    [client]
+    [allauthClient]
   );
 
   const verifyEmail = useCallback(
     async (key: string) => {
-      await client.verifyEmail({ key });
+      await allauthClient.verifyEmail({ key });
     },
-    [client]
+    [allauthClient]
   );
 
   const changePassword = useCallback(
     async (currentPassword: string, newPassword: string) => {
-      await client.changePassword({
+      await allauthClient.changePassword({
         current_password: currentPassword,
         new_password: newPassword,
       });
     },
-    [client]
+    [allauthClient]
   );
 
   const value = {
-    client,
+    client: allauthClient,
     user,
     isLoading,
     isAuthenticated,

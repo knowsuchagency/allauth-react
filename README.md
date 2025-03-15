@@ -12,12 +12,14 @@ This package also requires `@knowsuchagency/allauth-fetch` as a peer dependency.
 
 ## Quick Start
 
+You can initialize the provider by directly passing a client:
+
 ```jsx
-import { AllauthProvider, useAllauth } from '@knowsuchagency/allauth-react';
-import { AllauthClient } from '@knowsuchagency/allauth-fetch';
+import { AllauthProvider, useAllauth } from "@knowsuchagency/allauth-react";
+import { AllauthClient } from "@knowsuchagency/allauth-fetch";
 
 // Initialize the client
-const client = new AllauthClient('browser', 'https://api.example.com');
+const client = new AllauthClient("https://api.example.com", "/api/v1/csrf-token");
 
 function App() {
   return (
@@ -26,15 +28,38 @@ function App() {
     </AllauthProvider>
   );
 }
+```
 
+Or you can let the AllauthProvider create the client for you:
+
+```jsx
+import { AllauthProvider } from "@knowsuchagency/allauth-react";
+
+function App() {
+  return (
+    <AllauthProvider
+      baseUrl="https://api.example.com"
+      csrfTokenEndpoint="/api/v1/csrf-token"
+    >
+      <AuthenticatedApp />
+    </AllauthProvider>
+  );
+}
+```
+
+Then you can use the authentication hooks:
+
+```jsx
 function AuthenticatedApp() {
   const { user, isAuthenticated, login, logout } = useAllauth();
 
   if (!isAuthenticated) {
     return (
-      <LoginForm onSubmit={async (email, password) => {
-        await login({ email, password });
-      }} />
+      <LoginForm
+        onSubmit={async (email, password) => {
+          await login({ email, password });
+        }}
+      />
     );
   }
 
@@ -51,17 +76,38 @@ function AuthenticatedApp() {
 
 ### Authentication Provider
 
-The `AllauthProvider` component sets up the authentication context for your application:
+The `AllauthProvider` component sets up the authentication context for your application.
+You can initialize it in two ways:
+
+#### Method 1: Pass a pre-configured client
 
 ```jsx
-import { AllauthProvider } from '@knowsuchagency/allauth-react';
-import { AllauthClient } from '@knowsuchagency/allauth-fetch';
+import { AllauthProvider } from "@knowsuchagency/allauth-react";
+import { AllauthClient } from "@knowsuchagency/allauth-fetch";
 
-const client = new AllauthClient('browser', 'https://api.example.com');
+const client = new AllauthClient("https://api.example.com");
 
 function App() {
   return (
     <AllauthProvider client={client}>
+      {/* Your app components */}
+    </AllauthProvider>
+  );
+}
+```
+
+#### Method 2: Let the provider create the client
+
+```jsx
+import { AllauthProvider } from "@knowsuchagency/allauth-react";
+
+function App() {
+  return (
+    <AllauthProvider
+      baseUrl="https://api.example.com"
+      csrfTokenEndpoint="/csrf-token/"
+      clientType="browser"
+    >
       {/* Your app components */}
     </AllauthProvider>
   );
@@ -74,18 +120,18 @@ The primary hook for accessing authentication state and methods:
 
 ```jsx
 const {
-  user,                    // Current user object or null
-  isAuthenticated,         // Boolean indicating auth status
-  isLoading,              // Boolean indicating loading state
-  login,                  // Function to log in
-  logout,                 // Function to log out
-  signup,                 // Function to register new users
-  requestPasswordReset,   // Function to request password reset
-  resetPassword,          // Function to reset password
-  reauthenticate,        // Function to reauthenticate user
-  verifyEmail,           // Function to verify email
-  changePassword,        // Function to change password
-  refreshAuthStatus      // Function to refresh auth status
+  user, // Current user object or null
+  isAuthenticated, // Boolean indicating auth status
+  isLoading, // Boolean indicating loading state
+  login, // Function to log in
+  logout, // Function to log out
+  signup, // Function to register new users
+  requestPasswordReset, // Function to request password reset
+  resetPassword, // Function to reset password
+  reauthenticate, // Function to reauthenticate user
+  verifyEmail, // Function to verify email
+  changePassword, // Function to change password
+  refreshAuthStatus, // Function to refresh auth status
 } = useAllauth();
 ```
 
@@ -95,17 +141,17 @@ Use the `useEmailAddresses` hook to manage email addresses:
 
 ```jsx
 const {
-  emailAddresses,         // Array of email addresses
-  isLoading,             // Boolean indicating loading state
-  addEmail,              // Function to add new email
-  removeEmail,           // Function to remove email
-  setPrimaryEmail,       // Function to set primary email
-  refresh               // Function to refresh email list
+  emailAddresses, // Array of email addresses
+  isLoading, // Boolean indicating loading state
+  addEmail, // Function to add new email
+  removeEmail, // Function to remove email
+  setPrimaryEmail, // Function to set primary email
+  refresh, // Function to refresh email list
 } = useEmailAddresses();
 
 // Example usage
-await addEmail('new@example.com');
-await setPrimaryEmail('primary@example.com');
+await addEmail("new@example.com");
+await setPrimaryEmail("primary@example.com");
 ```
 
 ### Two-Factor Authentication
@@ -114,15 +160,15 @@ Use the `useAuthenticators` hook to manage 2FA:
 
 ```jsx
 const {
-  authenticators,         // Array of authenticator devices
-  isLoading,             // Boolean indicating loading state
-  setupTOTP,             // Function to set up TOTP
-  deactivateTOTP,        // Function to deactivate TOTP
-  refresh               // Function to refresh authenticators
+  authenticators, // Array of authenticator devices
+  isLoading, // Boolean indicating loading state
+  setupTOTP, // Function to set up TOTP
+  deactivateTOTP, // Function to deactivate TOTP
+  refresh, // Function to refresh authenticators
 } = useAuthenticators();
 
 // Example usage
-await setupTOTP('123456'); // Setup TOTP with verification code
+await setupTOTP("123456"); // Setup TOTP with verification code
 ```
 
 ### Social Provider Accounts
@@ -131,14 +177,14 @@ Use the `useProviderAccounts` hook to manage connected social accounts:
 
 ```jsx
 const {
-  accounts,              // Array of connected provider accounts
-  isLoading,             // Boolean indicating loading state
-  disconnectAccount,     // Function to disconnect account
-  refresh               // Function to refresh accounts
+  accounts, // Array of connected provider accounts
+  isLoading, // Boolean indicating loading state
+  disconnectAccount, // Function to disconnect account
+  refresh, // Function to refresh accounts
 } = useProviderAccounts();
 
 // Example usage
-await disconnectAccount('google', 'account123');
+await disconnectAccount("google", "account123");
 ```
 
 ## Complete Authentication Flow Example
@@ -154,20 +200,16 @@ function LoginPage() {
     try {
       await login({ email, password });
     } catch (err) {
-      if (err.code === 'email_verification_required') {
+      if (err.code === "email_verification_required") {
         // Handle email verification flow
-        navigate('/verify-email');
+        navigate("/verify-email");
       } else {
         setError(err.message);
       }
     }
   };
 
-  return (
-    <form onSubmit={handleSubmit}>
-      {/* Form fields */}
-    </form>
-  );
+  return <form onSubmit={handleSubmit}>{/* Form fields */}</form>;
 }
 ```
 
@@ -181,14 +223,14 @@ try {
 } catch (error) {
   // Handle specific error cases
   switch (error.code) {
-    case 'invalid_credentials':
-      setError('Invalid email or password');
+    case "invalid_credentials":
+      setError("Invalid email or password");
       break;
-    case 'email_verification_required':
-      navigate('/verify-email');
+    case "email_verification_required":
+      navigate("/verify-email");
       break;
     default:
-      setError('An unexpected error occurred');
+      setError("An unexpected error occurred");
   }
 }
 ```
@@ -198,7 +240,11 @@ try {
 The library is written in TypeScript and provides full type definitions. Import types directly:
 
 ```typescript
-import type { User, EmailAddress, Authenticator } from '@knowsuchagency/allauth-react';
+import type {
+  User,
+  EmailAddress,
+  Authenticator,
+} from "@knowsuchagency/allauth-react";
 
 // Example type usage
 const handleUser = (user: User) => {
@@ -211,12 +257,12 @@ const handleUser = (user: User) => {
 When testing components that use these hooks, wrap them in the `AllauthProvider`:
 
 ```jsx
-import { render, screen } from '@testing-library/react';
-import { AllauthProvider } from '@knowsuchagency/allauth-react';
+import { render, screen } from "@testing-library/react";
+import { AllauthProvider } from "@knowsuchagency/allauth-react";
 
-const mockClient = new AllauthClient('browser', 'http://test.com');
+const mockClient = new AllauthClient("http://test.com");
 
-test('renders authenticated content', () => {
+test("renders authenticated content", () => {
   render(
     <AllauthProvider client={mockClient}>
       <YourComponent />

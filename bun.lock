@@ -4,13 +4,13 @@
     "": {
       "name": "allauth-react",
       "dependencies": {
-        "@knowsuchagency/allauth-fetch": "npm:@jsr/knowsuchagency__allauth-fetch@^0.10.0",
+        "@knowsuchagency/allauth-fetch": "npm:@jsr/knowsuchagency__allauth-fetch@^0.13.0",
         "react": "^18.0.0",
       },
     },
   },
   "packages": {
-    "@knowsuchagency/allauth-fetch": ["@jsr/knowsuchagency__allauth-fetch@0.10.0", "https://npm.jsr.io/~/11/@jsr/knowsuchagency__allauth-fetch/0.10.0.tgz", {}, "sha512-VnC+G9kK1ZA1BgAZBuB5RMzh8vUMgo5hTd8pj8IDc5AVQQnaEmZdeW6H71eeSwbll8AhjVGFixwcZ+TRQE5o+w=="],
+    "@knowsuchagency/allauth-fetch": ["@jsr/knowsuchagency__allauth-fetch@0.13.0", "https://npm.jsr.io/~/11/@jsr/knowsuchagency__allauth-fetch/0.13.0.tgz", {}, "sha512-QBEhFKm9ZqH33/1vb9w6vE1Xd/3CvFOxoKD5ngccArBp/pPD412eDJQM8zb01DBrUIQ2p5Ii+awMj/FnYhkWXQ=="],
 
     "js-tokens": ["js-tokens@4.0.0", "", {}, "sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ=="],
 
