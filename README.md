@@ -19,7 +19,7 @@ import { AllauthProvider, useAllauth } from "@knowsuchagency/allauth-react";
 import { AllauthClient } from "@knowsuchagency/allauth-fetch";
 
 // Initialize the client
-const client = new AllauthClient("https://api.example.com", "/api/v1/csrf-token");
+const client = new AllauthClient();
 
 function App() {
   return (
