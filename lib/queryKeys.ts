@@ -7,38 +7,38 @@ export const allauthQueryKeys = {
   all: ['allauth'] as const,
   
   // Configuration
-  config: () => [...allauthQueryKeys.all, 'config'] as const,
+  config: (): readonly ["allauth", "config"] => [...allauthQueryKeys.all, 'config'] as const,
   
   // Authentication
-  auth: () => [...allauthQueryKeys.all, 'auth'] as const,
+  auth: (): readonly ["allauth", "auth"] => [...allauthQueryKeys.all, 'auth'] as const,
   authStatus: (): readonly ["allauth", "auth", "status"] => [...allauthQueryKeys.auth(), 'status'] as const,
   
   // Email addresses
-  emails: () => [...allauthQueryKeys.all, 'emails'] as const,
-  emailAddresses: () => [...allauthQueryKeys.all, 'emails'] as const, // Alias for backwards compatibility
+  emails: (): readonly ["allauth", "emails"] => [...allauthQueryKeys.all, 'emails'] as const,
+  emailAddresses: (): readonly ["allauth", "emails"] => [...allauthQueryKeys.all, 'emails'] as const, // Alias for backwards compatibility
   emailVerificationInfo: (key: string): readonly ["allauth", "emails", "verify", string] => [...allauthQueryKeys.emails(), 'verify', key] as const,
   
   // Phone number
-  phone: () => [...allauthQueryKeys.all, 'phone'] as const,
-  phoneNumber: () => [...allauthQueryKeys.all, 'phone'] as const, // Alias for backwards compatibility
+  phone: (): readonly ["allauth", "phone"] => [...allauthQueryKeys.all, 'phone'] as const,
+  phoneNumber: (): readonly ["allauth", "phone"] => [...allauthQueryKeys.all, 'phone'] as const, // Alias for backwards compatibility
   
   // Password reset
-  passwordReset: () => [...allauthQueryKeys.all, 'password-reset'] as const,
+  passwordReset: (): readonly ["allauth", "password-reset"] => [...allauthQueryKeys.all, 'password-reset'] as const,
   passwordResetInfo: (key: string): readonly ["allauth", "password-reset", string] => [...allauthQueryKeys.passwordReset(), key] as const,
   
   // Provider accounts
-  providers: () => [...allauthQueryKeys.all, 'providers'] as const,
-  providerAccounts: () => [...allauthQueryKeys.all, 'providers'] as const, // Alias for backwards compatibility
+  providers: (): readonly ["allauth", "providers"] => [...allauthQueryKeys.all, 'providers'] as const,
+  providerAccounts: (): readonly ["allauth", "providers"] => [...allauthQueryKeys.all, 'providers'] as const, // Alias for backwards compatibility
   providerSignup: (): readonly ["allauth", "providers", "signup"] => [...allauthQueryKeys.providers(), 'signup'] as const,
   
   // Authenticators (MFA)
-  authenticators: () => [...allauthQueryKeys.all, 'authenticators'] as const,
+  authenticators: (): readonly ["allauth", "authenticators"] => [...allauthQueryKeys.all, 'authenticators'] as const,
   totp: (): readonly ["allauth", "authenticators", "totp"] => [...allauthQueryKeys.authenticators(), 'totp'] as const,
   recoveryCodes: (): readonly ["allauth", "authenticators", "recovery-codes"] => [...allauthQueryKeys.authenticators(), 'recovery-codes'] as const,
   webauthn: (): readonly ["allauth", "authenticators", "webauthn"] => [...allauthQueryKeys.authenticators(), 'webauthn'] as const,
   
   // Sessions
-  sessions: () => [...allauthQueryKeys.all, 'sessions'] as const,
+  sessions: (): readonly ["allauth", "sessions"] => [...allauthQueryKeys.all, 'sessions'] as const,
 } as const;
 
 /**
