@@ -1,358 +1,252 @@
-import React, {
-  createContext,
-  useContext,
-  useCallback,
-  useEffect,
-  useState,
-  useMemo,
-} from "react";
-import {
-  AllauthClient,
+/**
+ * @knowsuchagency/allauth-react
+ * React hooks and components for django-allauth headless API
+ */
+
+// ============================================================================
+// Provider
+// ============================================================================
+export { AllauthProvider } from './lib/provider/AllauthProvider';
+
+// ============================================================================
+// High-Level Hooks (Recommended)
+// ============================================================================
+export { useAuth, type UseAuthResult } from './lib/hooks/useAuth';
+export { useEmailManagement, type UseEmailManagementResult } from './lib/hooks/useEmailManagement';
+export { usePasswordReset, type UsePasswordResetResult } from './lib/hooks/usePasswordReset';
+export { useSocialAuth, type UseSocialAuthResult } from './lib/hooks/useSocialAuth';
+
+// ============================================================================
+// Query Keys
+// ============================================================================
+export { 
+  allauthQueryKeys, 
+  getAuthInvalidationKeys, 
+  getAllInvalidationKeys 
+} from './lib/queryKeys';
+
+// ============================================================================
+// API and Storage
+// ============================================================================
+export { AllauthClient, initializeClient, getClient } from './lib/api/client';
+export { 
+  ZustandStorage, 
+  CookieStorage, 
+  HybridStorage,
+  useAuthTokens,
+  useAuthTokenStore,
+  getStorage 
+} from './lib/api/storage';
+
+// ============================================================================
+// Types
+// ============================================================================
+export type {
+  // Core Types
+  ClientType,
+  AuthenticatorType,
+  AuthenticationMethod,
+  FlowId,
+  StorageInterface,
+  
+  // User and Authentication
   User,
-  AuthenticatorsResponse,
+  Flow,
+  Provider,
+  AuthenticationMethodDetails,
+  AuthMethod,
+  
+  // Configuration
+  ConfigurationResponse,
+  
+  // Authentication Responses
+  AuthenticationResponse,
+  AuthenticatedResponse,
+  NotAuthenticatedResponse,
+  
+  // Email Management
+  EmailAddress,
   EmailAddressesResponse,
+  EmailVerificationInfoResponse,
+  
+  // Phone Management
+  PhoneNumber,
+  PhoneNumberResponse,
+  
+  // Password Management
+  PasswordResetInfoResponse,
+  
+  // Provider/Social Accounts
+  ProviderAccount,
   ProviderAccountsResponse,
-} from "@knowsuchagency/allauth-fetch";
+  ProviderSignupResponse,
+  
+  // Multi-Factor Authentication
+  TOTPAuthenticator,
+  RecoveryCodesAuthenticator,
+  WebAuthnAuthenticator,
+  Authenticator,
+  AuthenticatorsResponse,
+  SensitiveRecoveryCodesAuthenticator,
+  SensitiveRecoveryCodesAuthenticatorResponse,
+  TOTPAuthenticatorResponse,
+  NoTOTPAuthenticatorResponse,
+  
+  // WebAuthn
+  WebAuthnCredentialCreationOptions,
+  WebAuthnCredentialRequestOptions,
+  
+  // Sessions
+  Session,
+  SessionsResponse,
+  
+  // Error Responses
+  ErrorDetail,
+  ErrorResponse,
+  ForbiddenResponse,
+  ConflictResponse,
+  GoneResponse,
+  TooManyRequestsResponse,
+  
+  // Request Types
+  LoginRequest,
+  SignupRequest,
+  LoginByCodeRequest,
+  ConfirmLoginCodeRequest,
+  EmailVerificationRequest,
+  PhoneVerificationRequest,
+  PasswordResetRequest,
+  PasswordResetConfirmRequest,
+  PasswordChangeRequest,
+  ReauthenticateRequest,
+  EmailAddressRequest,
+  EmailPrimaryRequest,
+  ProviderTokenRequest,
+  ProviderSignupRequest,
+  MFAAuthenticateRequest,
+  MFATrustRequest,
+  TOTPActivateRequest,
+  WebAuthnLoginRequest,
+  WebAuthnSignupRequest,
+  ProviderDisconnectRequest,
+  
+  // Response Union Types
+  AuthResponse,
+  APIResponse,
+} from './lib/api/types';
 
-interface AllauthContextType {
-  client: AllauthClient;
-  user: User | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  login: (data: {
-    username?: string;
-    email?: string;
-    password: string;
-  }) => Promise<void>;
-  logout: () => Promise<void>;
-  signup: (data: {
-    email?: string;
-    username?: string;
-    password: string;
-  }) => Promise<void>;
-  requestPasswordReset: (email: string) => Promise<void>;
-  resetPassword: (key: string, password: string) => Promise<void>;
-  reauthenticate: (password: string) => Promise<void>;
-  verifyEmail: (key: string) => Promise<void>;
-  changePassword: (
-    currentPassword: string,
-    newPassword: string
-  ) => Promise<void>;
-  refreshAuthStatus: () => Promise<void>;
-}
+// ============================================================================
+// Granular Hooks (Advanced Usage)
+// ============================================================================
 
-interface AllauthProviderProps {
-  client?: AllauthClient;
-  clientType?: "browser" | "app";
-  baseUrl?: string;
-  csrfTokenEndpoint?: string;
-  children: React.ReactNode;
-}
+// Authentication Hooks - Current Session
+export { useAuthStatus } from './lib/hooks/authentication/current-session/useAuthStatus';
+export { useLogout } from './lib/hooks/authentication/current-session/useLogout';
 
-const AllauthContext = createContext<AllauthContextType | null>(null);
+// ============================================================================
+// Authentication Hooks - Account
+// ============================================================================
+export { useLogin } from './lib/hooks/authentication/account/useLogin';
+export { useSignup } from './lib/hooks/authentication/account/useSignup';
+export { useReauthenticate } from './lib/hooks/authentication/account/useReauthenticate';
+export { getEmailVerificationInfo } from './lib/hooks/authentication/account/useEmailVerificationInfo';
+export { useVerifyEmail } from './lib/hooks/authentication/account/useVerifyEmail';
+export { useResendEmailVerification } from './lib/hooks/authentication/account/useResendEmailVerification';
+export { useVerifyPhone } from './lib/hooks/authentication/account/useVerifyPhone';
+export { useResendPhoneVerification } from './lib/hooks/authentication/account/useResendPhoneVerification';
 
-export function AllauthProvider({
-  client,
-  clientType,
-  baseUrl,
-  csrfTokenEndpoint,
-  children,
-}: AllauthProviderProps): React.ReactElement {
-  // Create client if not directly provided
-  const allauthClient = useMemo(() => {
-    if (client) {
-      return client;
-    }
+// ============================================================================
+// Authentication Hooks - Password Reset
+// ============================================================================
+export { useRequestPasswordReset } from './lib/hooks/authentication/password-reset/useRequestPasswordReset';
+export { getPasswordResetInfo } from './lib/hooks/authentication/password-reset/usePasswordResetInfo';
+export { useResetPassword } from './lib/hooks/authentication/password-reset/useResetPassword';
 
-    else if (baseUrl) {
-      return new AllauthClient(baseUrl, csrfTokenEndpoint, clientType);
-    }
+// ============================================================================
+// Authentication Hooks - Login by Code
+// ============================================================================
+export { useRequestLoginCode } from './lib/hooks/authentication/login-by-code/useRequestLoginCode';
+export { useConfirmLoginCode } from './lib/hooks/authentication/login-by-code/useConfirmLoginCode';
 
-    throw new Error(
-      "Either client or baseUrl must be provided"
-    );
-  }, [client, clientType, baseUrl, csrfTokenEndpoint]);
+// ============================================================================
+// Authentication Hooks - Providers
+// ============================================================================
+export { useProviderRedirect } from './lib/hooks/authentication/providers/useProviderRedirect';
+export { useProviderToken } from './lib/hooks/authentication/providers/useProviderToken';
+export { useProviderSignupData } from './lib/hooks/authentication/providers/useProviderSignupData';
+export { useProviderSignup } from './lib/hooks/authentication/providers/useProviderSignup';
 
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+// ============================================================================
+// Authentication Hooks - Two-Factor
+// ============================================================================
+export { useMfaAuthenticate } from './lib/hooks/authentication/two-factor/useMfaAuthenticate';
+export { useMfaReauthenticate } from './lib/hooks/authentication/two-factor/useMfaReauthenticate';
+export { useMfaTrust } from './lib/hooks/authentication/two-factor/useMfaTrust';
 
-  const refreshAuthStatus = useCallback(async () => {
-    try {
-      const response = await allauthClient.getAuthenticationStatus();
-      if ("data" in response && "user" in response.data) {
-        setUser(response.data.user);
-        setIsAuthenticated(true);
-      } else {
-        setUser(null);
-        setIsAuthenticated(false);
-      }
-    } catch (error) {
-      setUser(null);
-      setIsAuthenticated(false);
-    }
-    setIsLoading(false);
-  }, [allauthClient]);
+// ============================================================================
+// Authentication Hooks - WebAuthn
+// ============================================================================
+export { getWebAuthnSignupOptions } from './lib/hooks/authentication/webauthn/useWebAuthnSignupOptions';
+export { useWebAuthnSignup } from './lib/hooks/authentication/webauthn/useWebAuthnSignup';
+export { getWebAuthnLoginOptions } from './lib/hooks/authentication/webauthn/useWebAuthnLoginOptions';
+export { useWebAuthnLogin } from './lib/hooks/authentication/webauthn/useWebAuthnLogin';
+export { getWebAuthnAuthenticateOptions } from './lib/hooks/authentication/webauthn/useWebAuthnAuthenticateOptions';
+export { useWebAuthnAuthenticate } from './lib/hooks/authentication/webauthn/useWebAuthnAuthenticate';
+export { getWebAuthnReauthenticateOptions } from './lib/hooks/authentication/webauthn/useWebAuthnReauthenticateOptions';
+export { useWebAuthnReauthenticate } from './lib/hooks/authentication/webauthn/useWebAuthnReauthenticate';
 
-  useEffect(() => {
-    refreshAuthStatus();
-  }, [refreshAuthStatus]);
+// ============================================================================
+// Account Hooks - Email
+// ============================================================================
+export { useEmailAddresses } from './lib/hooks/account/email/useEmailAddresses';
+export { useAddEmailAddress } from './lib/hooks/account/email/useAddEmailAddress';
+export { useRemoveEmailAddress } from './lib/hooks/account/email/useRemoveEmailAddress';
+export { useSetPrimaryEmail } from './lib/hooks/account/email/useSetPrimaryEmail';
+export { useRequestEmailVerification } from './lib/hooks/account/email/useRequestEmailVerification';
 
-  const login = useCallback(
-    async (data: { username?: string; email?: string; password: string }) => {
-      const response = await allauthClient.login(data);
-      if ("data" in response && "user" in response.data) {
-        setUser(response.data.user);
-        setIsAuthenticated(true);
-      } else {
-        throw new Error("Login failed");
-      }
-    },
-    [allauthClient]
-  );
+// ============================================================================
+// Account Hooks - Phone
+// ============================================================================
+export { usePhoneNumber } from './lib/hooks/account/phone/usePhoneNumber';
+export { useUpdatePhoneNumber } from './lib/hooks/account/phone/useUpdatePhoneNumber';
+export { useRemovePhoneNumber } from './lib/hooks/account/phone/useRemovePhoneNumber';
 
-  const logout = useCallback(async () => {
-    await allauthClient.logout();
-    setUser(null);
-    setIsAuthenticated(false);
-  }, [allauthClient]);
+// ============================================================================
+// Account Hooks - Password
+// ============================================================================
+export { useChangePassword } from './lib/hooks/account/password/useChangePassword';
 
-  const signup = useCallback(
-    async (data: { email?: string; username?: string; password: string }) => {
-      const response = await allauthClient.signup(data);
-      if ("data" in response && "user" in response.data) {
-        setUser(response.data.user);
-        setIsAuthenticated(true);
-      } else {
-        throw new Error("Signup failed");
-      }
-    },
-    [allauthClient]
-  );
+// ============================================================================
+// Account Hooks - Providers
+// ============================================================================
+export { useProviderAccounts } from './lib/hooks/account/providers/useProviderAccounts';
+export { useDisconnectProvider } from './lib/hooks/account/providers/useDisconnectProvider';
 
-  const requestPasswordReset = useCallback(
-    async (email: string) => {
-      await allauthClient.requestPassword({ email });
-    },
-    [allauthClient]
-  );
+// ============================================================================
+// Account Hooks - Authenticators
+// ============================================================================
+export { useAuthenticators } from './lib/hooks/account/authenticators/useAuthenticators';
 
-  const resetPassword = useCallback(
-    async (key: string, password: string) => {
-      await allauthClient.resetPassword({ key, password });
-    },
-    [allauthClient]
-  );
+// TOTP
+export { getTOTPAuthenticator } from './lib/hooks/account/authenticators/totp/useTOTPAuthenticator';
+export { useActivateTOTP } from './lib/hooks/account/authenticators/totp/useActivateTOTP';
+export { useDeactivateTOTP } from './lib/hooks/account/authenticators/totp/useDeactivateTOTP';
 
-  const reauthenticate = useCallback(
-    async (password: string) => {
-      await allauthClient.reauthenticate({ password });
-    },
-    [allauthClient]
-  );
+// Recovery Codes
+export { getRecoveryCodes } from './lib/hooks/account/authenticators/recovery-codes/useRecoveryCodes';
+export { useRegenerateRecoveryCodes } from './lib/hooks/account/authenticators/recovery-codes/useRegenerateRecoveryCodes';
 
-  const verifyEmail = useCallback(
-    async (key: string) => {
-      await allauthClient.verifyEmail({ key });
-    },
-    [allauthClient]
-  );
+// WebAuthn
+export { useWebAuthnCredentials } from './lib/hooks/account/authenticators/webauthn/useWebAuthnCredentials';
+export { useDeleteWebAuthnCredential } from './lib/hooks/account/authenticators/webauthn/useDeleteWebAuthnCredential';
 
-  const changePassword = useCallback(
-    async (currentPassword: string, newPassword: string) => {
-      await allauthClient.changePassword({
-        current_password: currentPassword,
-        new_password: newPassword,
-      });
-    },
-    [allauthClient]
-  );
+// ============================================================================
+// Sessions Hooks
+// ============================================================================
+export { useListSessions } from './lib/hooks/sessions/useListSessions';
+export { useDeleteSession } from './lib/hooks/sessions/useDeleteSession';
 
-  const value = {
-    client: allauthClient,
-    user,
-    isLoading,
-    isAuthenticated,
-    login,
-    logout,
-    signup,
-    requestPasswordReset,
-    resetPassword,
-    reauthenticate,
-    verifyEmail,
-    changePassword,
-    refreshAuthStatus,
-  };
-
-  return React.createElement(AllauthContext.Provider, { value }, children);
-}
-
-export function useAllauth(): AllauthContextType {
-  const context = useContext(AllauthContext);
-  if (!context) {
-    throw new Error("useAllauth must be used within an AllauthProvider");
-  }
-  return context;
-}
-
-// First, let's define the return type interfaces
-interface UseEmailAddressesReturn {
-  emailAddresses: EmailAddressesResponse["data"];
-  isLoading: boolean;
-  addEmail: (email: string) => Promise<void>;
-  removeEmail: (email: string) => Promise<void>;
-  setPrimaryEmail: (email: string) => Promise<void>;
-  refresh: () => Promise<void>;
-}
-
-interface UseAuthenticatorsReturn {
-  authenticators: AuthenticatorsResponse["data"];
-  isLoading: boolean;
-  setupTOTP: (code: string) => Promise<void>;
-  deactivateTOTP: () => Promise<void>;
-  refresh: () => Promise<void>;
-}
-
-interface UseProviderAccountsReturn {
-  accounts: ProviderAccountsResponse["data"];
-  isLoading: boolean;
-  disconnectAccount: (provider: string, account: string) => Promise<void>;
-  refresh: () => Promise<void>;
-}
-
-export function useEmailAddresses(): UseEmailAddressesReturn {
-  const { client } = useAllauth();
-  const [emailAddresses, setEmailAddresses] = useState<
-    EmailAddressesResponse["data"]
-  >([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const fetchEmailAddresses = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const response = await client.listEmailAddresses();
-      if ("data" in response) {
-        setEmailAddresses(response.data);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, [client]);
-
-  useEffect(() => {
-    fetchEmailAddresses();
-  }, [fetchEmailAddresses]);
-
-  const addEmail = useCallback(
-    async (email: string) => {
-      await client.addEmailAddress({ email });
-      await fetchEmailAddresses();
-    },
-    [client, fetchEmailAddresses]
-  );
-
-  const removeEmail = useCallback(
-    async (email: string) => {
-      await client.removeEmailAddress({ email });
-      await fetchEmailAddresses();
-    },
-    [client, fetchEmailAddresses]
-  );
-
-  const setPrimaryEmail = useCallback(
-    async (email: string) => {
-      await client.changePrimaryEmailAddress({ email, primary: true });
-      await fetchEmailAddresses();
-    },
-    [client, fetchEmailAddresses]
-  );
-
-  return {
-    emailAddresses,
-    isLoading,
-    addEmail,
-    removeEmail,
-    setPrimaryEmail,
-    refresh: fetchEmailAddresses,
-  };
-}
-
-export function useAuthenticators(): UseAuthenticatorsReturn {
-  const { client } = useAllauth();
-  const [authenticators, setAuthenticators] = useState<
-    AuthenticatorsResponse["data"]
-  >([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const fetchAuthenticators = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const response = await client.listAuthenticators();
-      setAuthenticators(response.data);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [client]);
-
-  useEffect(() => {
-    fetchAuthenticators();
-  }, [fetchAuthenticators]);
-
-  const setupTOTP = useCallback(
-    async (code: string) => {
-      await client.activateTOTP({ code });
-      await fetchAuthenticators();
-    },
-    [client, fetchAuthenticators]
-  );
-
-  const deactivateTOTP = useCallback(async () => {
-    await client.deactivateTOTP();
-    await fetchAuthenticators();
-  }, [client, fetchAuthenticators]);
-
-  return {
-    authenticators,
-    isLoading,
-    setupTOTP,
-    deactivateTOTP,
-    refresh: fetchAuthenticators,
-  };
-}
-
-export function useProviderAccounts(): UseProviderAccountsReturn {
-  const { client } = useAllauth();
-  const [accounts, setAccounts] = useState<ProviderAccountsResponse["data"]>(
-    []
-  );
-  const [isLoading, setIsLoading] = useState(true);
-
-  const fetchAccounts = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const response = await client.listProviderAccounts();
-      setAccounts(response.data);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [client]);
-
-  useEffect(() => {
-    fetchAccounts();
-  }, [fetchAccounts]);
-
-  const disconnectAccount = useCallback(
-    async (provider: string, account: string) => {
-      await client.disconnectProviderAccount({ provider, account });
-      await fetchAccounts();
-    },
-    [client, fetchAccounts]
-  );
-
-  return {
-    accounts,
-    isLoading,
-    disconnectAccount,
-    refresh: fetchAccounts,
-  };
-}
+// ============================================================================
+// Configuration Hook
+// ============================================================================
+export { useConfig } from './lib/hooks/config/useConfig';
