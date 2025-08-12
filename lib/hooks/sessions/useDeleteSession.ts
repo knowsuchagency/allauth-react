@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
 import { getClient } from '../../api/client';
 import { allauthQueryKeys } from '../../queryKeys';
 import { useAuthTokens } from '../../api/storage';
@@ -7,7 +7,11 @@ import type { SessionsResponse, ErrorResponse } from '../../api/types';
 /**
  * Mutation hook for deleting a session
  */
-export function useDeleteSession() {
+export function useDeleteSession(): UseMutationResult<
+  SessionsResponse,
+  ErrorResponse,
+  number | undefined
+> {
   const client = getClient();
   const queryClient = useQueryClient();
   const { clearTokens } = useAuthTokens();

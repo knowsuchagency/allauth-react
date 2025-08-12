@@ -7,7 +7,7 @@ import type {
 /**
  * Function to get TOTP authenticator info
  */
-export async function getTOTPAuthenticator() {
+export async function getTOTPAuthenticator(): Promise<TOTPAuthenticatorResponse | NoTOTPAuthenticatorResponse> {
   const client = getClient();
   return client.getTOTPAuthenticator();
 }

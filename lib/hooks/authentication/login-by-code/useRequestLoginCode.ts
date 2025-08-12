@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, type UseMutationResult } from '@tanstack/react-query';
 import { getClient } from '../../../api/client';
 import type { 
   AuthenticationResponse,
@@ -9,7 +9,11 @@ import type {
 /**
  * Mutation hook for requesting a login code
  */
-export function useRequestLoginCode() {
+export function useRequestLoginCode(): UseMutationResult<
+  AuthenticationResponse,
+  ErrorResponse,
+  LoginByCodeRequest
+> {
   const client = getClient();
 
   return useMutation<

@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { create, type UseBoundStore, type StoreApi } from 'zustand';
+import { persist, createJSONStorage, type PersistOptions } from 'zustand/middleware';
 import type { StorageInterface } from './types';
 
 // ============================================================================
@@ -14,7 +14,7 @@ interface AuthTokenStore {
   clearTokens: () => void;
 }
 
-const useAuthTokenStore = create<AuthTokenStore>()(
+const useAuthTokenStore: UseBoundStore<StoreApi<AuthTokenStore>> = create<AuthTokenStore>()(
   persist(
     (set) => ({
       sessionToken: null,
@@ -207,7 +207,13 @@ export function getSessionId(): string | undefined {
 /**
  * Hook to access auth tokens reactively
  */
-export function useAuthTokens() {
+export function useAuthTokens(): {
+  sessionToken: string | null;
+  csrfToken: string | null;
+  setSessionToken: (token: string | null) => void;
+  setCSRFToken: (token: string | null) => void;
+  clearTokens: () => void;
+} {
   return useAuthTokenStore((state) => ({
     sessionToken: state.sessionToken,
     csrfToken: state.csrfToken,

@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
 import { getClient } from '../../../api/client';
 import { allauthQueryKeys, getAuthInvalidationKeys } from '../../../queryKeys';
 import type { 
@@ -11,7 +11,11 @@ import type {
 /**
  * Mutation hook for signing up new users
  */
-export function useSignup() {
+export function useSignup(): UseMutationResult<
+  AuthenticatedResponse | AuthenticationResponse,
+  ErrorResponse,
+  SignupRequest
+> {
   const client = getClient();
   const queryClient = useQueryClient();
 

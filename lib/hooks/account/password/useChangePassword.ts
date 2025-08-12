@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, type UseMutationResult } from '@tanstack/react-query';
 import { getClient } from '../../../api/client';
 import type { 
   PasswordChangeRequest,
@@ -8,7 +8,11 @@ import type {
 /**
  * Mutation hook for changing password
  */
-export function useChangePassword() {
+export function useChangePassword(): UseMutationResult<
+  { status: 200 },
+  ErrorResponse,
+  PasswordChangeRequest
+> {
   const client = getClient();
 
   return useMutation<

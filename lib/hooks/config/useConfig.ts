@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { getClient } from '../../api/client';
 import { allauthQueryKeys } from '../../queryKeys';
 import type { ConfigurationResponse } from '../../api/types';
@@ -6,7 +6,7 @@ import type { ConfigurationResponse } from '../../api/types';
 /**
  * Hook to fetch the django-allauth configuration.
  */
-export function useConfig() {
+export function useConfig(): UseQueryResult<ConfigurationResponse> {
   const client = getClient();
 
   return useQuery<ConfigurationResponse>({

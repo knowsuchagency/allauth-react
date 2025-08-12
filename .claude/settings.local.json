@@ -11,7 +11,11 @@
       "Bash(./update-hooks-to-client.sh)",
       "Bash(python3:*)",
       "Bash(cp:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(bunx tsc:*)",
+      "Bash(bun run:*)",
+      "Bash(npx jsr publish --dry-run)",
+      "Bash(npx jsr publish --dry-run --allow-dirty)"
     ],
     "deny": [],
     "ask": []

@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
 import { getClient } from '../../../api/client';
 import { allauthQueryKeys } from '../../../queryKeys';
 import type { 
@@ -10,7 +10,11 @@ import type {
 /**
  * Mutation hook for setting primary email address
  */
-export function useSetPrimaryEmail() {
+export function useSetPrimaryEmail(): UseMutationResult<
+  EmailAddressesResponse,
+  ErrorResponse,
+  EmailPrimaryRequest
+> {
   const client = getClient();
   const queryClient = useQueryClient();
 

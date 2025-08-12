@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
 import { getClient } from '../../../api/client';
 import { allauthQueryKeys } from '../../../queryKeys';
 import type { 
@@ -11,7 +11,11 @@ import type {
 /**
  * Mutation hook for resetting password with key
  */
-export function useResetPassword() {
+export function useResetPassword(): UseMutationResult<
+  AuthenticatedResponse | AuthenticationResponse,
+  ErrorResponse,
+  PasswordResetConfirmRequest
+> {
   const client = getClient();
   const queryClient = useQueryClient();
 

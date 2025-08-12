@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
 import { getClient } from '../../../../api/client';
 import { allauthQueryKeys } from '../../../../queryKeys';
 import type { ErrorResponse } from '../../../../api/types';
@@ -6,7 +6,11 @@ import type { ErrorResponse } from '../../../../api/types';
 /**
  * Mutation hook for deactivating TOTP
  */
-export function useDeactivateTOTP() {
+export function useDeactivateTOTP(): UseMutationResult<
+  { status: 200 },
+  ErrorResponse,
+  void
+> {
   const client = getClient();
   const queryClient = useQueryClient();
 

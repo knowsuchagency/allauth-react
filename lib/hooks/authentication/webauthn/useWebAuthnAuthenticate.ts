@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
 import { getClient } from '../../../api/client';
 import { allauthQueryKeys, getAuthInvalidationKeys } from '../../../queryKeys';
 import type { 
@@ -10,7 +10,11 @@ import type {
 /**
  * Mutation hook for WebAuthn authentication
  */
-export function useWebAuthnAuthenticate() {
+export function useWebAuthnAuthenticate(): UseMutationResult<
+  AuthenticatedResponse | AuthenticationResponse,
+  ErrorResponse,
+  string
+> {
   const client = getClient();
   const queryClient = useQueryClient();
 

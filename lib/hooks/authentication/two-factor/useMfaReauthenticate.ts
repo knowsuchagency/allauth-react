@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
 import { getClient } from '../../../api/client';
 import { allauthQueryKeys } from '../../../queryKeys';
 import type { 
@@ -9,7 +9,11 @@ import type {
 /**
  * Mutation hook for MFA reauthentication
  */
-export function useMfaReauthenticate() {
+export function useMfaReauthenticate(): UseMutationResult<
+  AuthenticatedResponse,
+  ErrorResponse,
+  void
+> {
   const client = getClient();
   const queryClient = useQueryClient();
 

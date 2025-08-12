@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { getClient } from '../../../api/client';
 import { allauthQueryKeys } from '../../../queryKeys';
 import type { ProviderSignupResponse } from '../../../api/types';
@@ -6,7 +6,7 @@ import type { ProviderSignupResponse } from '../../../api/types';
 /**
  * Query hook for provider signup data
  */
-export function useProviderSignupData() {
+export function useProviderSignupData(): UseQueryResult<ProviderSignupResponse> {
   const client = getClient();
 
   return useQuery<ProviderSignupResponse>({

@@ -11,12 +11,12 @@ export const allauthQueryKeys = {
   
   // Authentication
   auth: () => [...allauthQueryKeys.all, 'auth'] as const,
-  authStatus: () => [...allauthQueryKeys.auth(), 'status'] as const,
+  authStatus: (): readonly ["allauth", "auth", "status"] => [...allauthQueryKeys.auth(), 'status'] as const,
   
   // Email addresses
   emails: () => [...allauthQueryKeys.all, 'emails'] as const,
   emailAddresses: () => [...allauthQueryKeys.all, 'emails'] as const, // Alias for backwards compatibility
-  emailVerificationInfo: (key: string) => [...allauthQueryKeys.emails(), 'verify', key] as const,
+  emailVerificationInfo: (key: string): readonly ["allauth", "emails", "verify", string] => [...allauthQueryKeys.emails(), 'verify', key] as const,
   
   // Phone number
   phone: () => [...allauthQueryKeys.all, 'phone'] as const,
@@ -24,18 +24,18 @@ export const allauthQueryKeys = {
   
   // Password reset
   passwordReset: () => [...allauthQueryKeys.all, 'password-reset'] as const,
-  passwordResetInfo: (key: string) => [...allauthQueryKeys.passwordReset(), key] as const,
+  passwordResetInfo: (key: string): readonly ["allauth", "password-reset", string] => [...allauthQueryKeys.passwordReset(), key] as const,
   
   // Provider accounts
   providers: () => [...allauthQueryKeys.all, 'providers'] as const,
   providerAccounts: () => [...allauthQueryKeys.all, 'providers'] as const, // Alias for backwards compatibility
-  providerSignup: () => [...allauthQueryKeys.providers(), 'signup'] as const,
+  providerSignup: (): readonly ["allauth", "providers", "signup"] => [...allauthQueryKeys.providers(), 'signup'] as const,
   
   // Authenticators (MFA)
   authenticators: () => [...allauthQueryKeys.all, 'authenticators'] as const,
-  totp: () => [...allauthQueryKeys.authenticators(), 'totp'] as const,
-  recoveryCodes: () => [...allauthQueryKeys.authenticators(), 'recovery-codes'] as const,
-  webauthn: () => [...allauthQueryKeys.authenticators(), 'webauthn'] as const,
+  totp: (): readonly ["allauth", "authenticators", "totp"] => [...allauthQueryKeys.authenticators(), 'totp'] as const,
+  recoveryCodes: (): readonly ["allauth", "authenticators", "recovery-codes"] => [...allauthQueryKeys.authenticators(), 'recovery-codes'] as const,
+  webauthn: (): readonly ["allauth", "authenticators", "webauthn"] => [...allauthQueryKeys.authenticators(), 'webauthn'] as const,
   
   // Sessions
   sessions: () => [...allauthQueryKeys.all, 'sessions'] as const,
@@ -44,7 +44,7 @@ export const allauthQueryKeys = {
 /**
  * Helper function to invalidate all queries related to authentication
  */
-export function getAuthInvalidationKeys() {
+export function getAuthInvalidationKeys(): readonly (readonly string[])[] {
   return [
     allauthQueryKeys.auth(),
     allauthQueryKeys.emails(),
@@ -57,6 +57,6 @@ export function getAuthInvalidationKeys() {
 /**
  * Helper function to invalidate all queries
  */
-export function getAllInvalidationKeys() {
+export function getAllInvalidationKeys(): readonly (readonly string[])[] {
   return [allauthQueryKeys.all];
 }

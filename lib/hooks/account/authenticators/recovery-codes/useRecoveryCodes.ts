@@ -6,7 +6,7 @@ import type {
 /**
  * Function to get recovery codes
  */
-export async function getRecoveryCodes() {
+export async function getRecoveryCodes(): Promise<SensitiveRecoveryCodesAuthenticatorResponse | { status: 404 }> {
   const client = getClient();
   return client.listRecoveryCodes();
 }
