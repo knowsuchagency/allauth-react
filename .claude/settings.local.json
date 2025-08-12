@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(bun add:*)",
+      "WebFetch(domain:docs.allauth.org)",
+      "Bash(curl:*)",
+      "Bash(npx tsc:*)",
+      "Bash(rm:*)",
+      "Bash(chmod:*)",
+      "Bash(./update-hooks-to-client.sh)",
+      "Bash(python3:*)",
+      "Bash(cp:*)",
+      "Bash(find:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
