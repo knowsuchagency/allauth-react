@@ -9,6 +9,14 @@
 export { AllauthProvider } from './lib/provider/AllauthProvider';
 
 // ============================================================================
+// High-Level Hooks (Recommended)
+// ============================================================================
+export { useAuth, type UseAuthResult } from './lib/hooks/useAuth';
+export { useEmailManagement, type UseEmailManagementResult } from './lib/hooks/useEmailManagement';
+export { usePasswordReset, type UsePasswordResetResult } from './lib/hooks/usePasswordReset';
+export { useSocialAuth, type UseSocialAuthResult } from './lib/hooks/useSocialAuth';
+
+// ============================================================================
 // Query Keys
 // ============================================================================
 export { 
@@ -128,8 +136,10 @@ export type {
 } from './lib/api/types';
 
 // ============================================================================
-// Authentication Hooks - Current Session
+// Granular Hooks (Advanced Usage)
 // ============================================================================
+
+// Authentication Hooks - Current Session
 export { useAuthStatus } from './lib/hooks/authentication/current-session/useAuthStatus';
 export { useLogout } from './lib/hooks/authentication/current-session/useLogout';
 

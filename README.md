@@ -1,15 +1,15 @@
 # Django Allauth React Module
 
-A comprehensive React library for integrating with django-allauth's headless API. Features complete API coverage, TanStack Query for server state management, and Zustand for reactive token storage.
+A comprehensive React library for integrating with django-allauth's headless API. Features intuitive high-level hooks for common authentication flows, complete API coverage with TanStack Query, and reactive token management with Zustand.
 
 ## Features
 
+✅ **Intuitive High-Level API** - Simple hooks for common authentication patterns  
 ✅ **Complete API Coverage** - All django-allauth headless endpoints implemented  
 ✅ **TanStack Query Integration** - Automatic caching, refetching, and optimistic updates  
 ✅ **TypeScript First** - Full type safety with comprehensive type exports  
 ✅ **Reactive Token Management** - Zustand-based storage with hooks  
 ✅ **Tree-Shakeable** - Import only what you need  
-✅ **OpenAPI-Aligned Structure** - Hooks organized to mirror django-allauth's API structure  
 
 ## Installation
 
@@ -19,7 +19,7 @@ npx jsr add @knowsuchagency/allauth-react
 
 ## Quick Start
 
-Initialize the provider with your API configuration:
+### 1. Set up the Provider
 
 ```jsx
 import { AllauthProvider } from "@knowsuchagency/allauth-react";
@@ -27,170 +27,319 @@ import { AllauthProvider } from "@knowsuchagency/allauth-react";
 function App() {
   return (
     <AllauthProvider
-      // these arguments are optional
+      // Optional: configure your API endpoint
       baseUrl="https://api.example.com"
-      csrfTokenEndpoint="/api/v1/csrf-token"
     >
-      <AuthenticatedApp />
+      <YourApp />
     </AllauthProvider>
   );
 }
 ```
 
-Then you can use the authentication hooks:
+### 2. Use the High-Level Hooks
 
 ```jsx
-import { useAuthStatus, useLogin, useLogout } from "@knowsuchagency/allauth-react";
+import { useAuth } from "@knowsuchagency/allauth-react";
 
-function AuthenticatedApp() {
-  const auth = useAuthStatus();
-  const login = useLogin();
-  const logout = useLogout();
+function YourApp() {
+  const { 
+    user, 
+    isAuthenticated, 
+    login, 
+    logout, 
+    isLoading 
+  } = useAuth();
 
-  if (auth.isLoading) {
-    return <div>Loading...</div>;
-  }
+  if (isLoading) return <div>Loading...</div>;
 
-  if (!auth.data?.meta?.is_authenticated) {
+  if (!isAuthenticated) {
     return (
-      <LoginForm
-        onSubmit={(email, password) => login.mutate({ email, password })}
-        isLoading={login.isPending}
-      />
+      <form onSubmit={(e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        login({
+          email: formData.get('email'),
+          password: formData.get('password')
+        });
+      }}>
+        <input name="email" type="email" required />
+        <input name="password" type="password" required />
+        <button type="submit">Login</button>
+      </form>
     );
   }
 
   return (
     <div>
-      <h1>Welcome, {auth.data.data.user.display}!</h1>
-      <button onClick={() => logout.mutate()} disabled={logout.isPending}>
-        Logout
+      <h1>Welcome, {user.display}!</h1>
+      <button onClick={logout}>Logout</button>
+    </div>
+  );
+}
+```
+
+## High-Level Hooks (Recommended)
+
+### `useAuth()` - Complete Authentication Management
+
+The main hook for authentication, combining status, login, logout, and signup.
+
+```jsx
+const {
+  // State
+  user,              // User object or null
+  isAuthenticated,   // Simple boolean check
+  isLoading,        // Loading auth status
+  error,            // Auth query error
+  
+  // Actions
+  login,            // (credentials) => Promise
+  logout,           // () => Promise
+  signup,           // (credentials) => Promise
+  
+  // Mutation states
+  isLoggingIn,      
+  isLoggingOut,     
+  isSigningUp,      
+  
+  // Mutation errors
+  loginError,       
+  logoutError,      
+  signupError,      
+  
+  // Utilities
+  refetch,          // Refresh auth status
+} = useAuth();
+```
+
+**Example: Complete Auth Flow**
+
+```jsx
+function AuthExample() {
+  const { user, isAuthenticated, login, logout, signup } = useAuth();
+
+  if (!isAuthenticated) {
+    return (
+      <>
+        <LoginForm onSubmit={login} />
+        <SignupForm onSubmit={signup} />
+      </>
+    );
+  }
+
+  return <Dashboard/>;
+}
+```
+
+### `useEmailManagement()` - Email Address Management
+
+Comprehensive email management with verification support.
+
+```jsx
+const {
+  // Data
+  emails,             // All email addresses
+  primaryEmail,       // Current primary email
+  verifiedEmails,     // List of verified emails
+  unverifiedEmails,   // List of unverified emails
+  
+  // Actions
+  addEmail,           // (email) => Promise
+  removeEmail,        // (email) => Promise
+  setPrimary,         // (email) => Promise
+  requestVerification,// (email) => Promise
+  verifyEmail,        // (key) => Promise
+  resendVerification, // () => Promise
+  
+  // States
+  isAdding,
+  isRemoving,
+  isVerifying,
+} = useEmailManagement();
+```
+
+**Example: Email Management UI**
+
+```jsx
+function EmailManager() {
+  const { 
+    emails, 
+    primaryEmail, 
+    addEmail, 
+    setPrimary, 
+    removeEmail 
+  } = useEmailManagement();
+
+  return (
+    <div>
+      <h2>Email Addresses</h2>
+      {emails.map(email => (
+        <div key={email.email}>
+          <span>{email.email}</span>
+          {email.primary && <span> (Primary)</span>}
+          {email.verified && <span> ✓</span>}
+          
+          {!email.primary && (
+            <>
+              <button onClick={() => setPrimary(email.email)}>
+                Make Primary
+              </button>
+              <button onClick={() => removeEmail(email.email)}>
+                Remove
+              </button>
+            </>
+          )}
+        </div>
+      ))}
+      
+      <button onClick={() => {
+        const email = prompt('Enter email address');
+        if (email) addEmail(email);
+      }}>
+        Add Email
       </button>
     </div>
   );
 }
 ```
 
-## Hook Organization
+### `usePasswordReset()` - Password Reset Flow
 
-Hooks are organized to mirror the django-allauth OpenAPI specification structure:
-
-### Authentication Hooks
-
-#### Current Session
-- `useAuthStatus()` - Get current authentication status
-- `useLogout()` - Logout current user
-
-#### Account Management
-- `useLogin()` - Login with credentials
-- `useSignup()` - Register new account
-- `useReauthenticate()` - Reauthenticate for sensitive operations
-- `useVerifyEmail()` - Verify email address
-- `useResendEmailVerification()` - Resend verification email
-- `useVerifyPhone()` - Verify phone number
-- `useResendPhoneVerification()` - Resend phone verification
-
-#### Password Reset
-- `useRequestPasswordReset()` - Request password reset email
-- `getPasswordResetInfo()` - Get reset token info
-- `useResetPassword()` - Reset password with token
-
-#### Login by Code
-- `useRequestLoginCode()` - Request login code via email
-- `useConfirmLoginCode()` - Confirm code to login
-
-#### Provider Authentication
-- `useProviderRedirect()` - Redirect to OAuth provider
-- `useProviderToken()` - Authenticate with provider token
-- `useProviderSignupData()` - Get provider signup data
-- `useProviderSignup()` - Complete provider signup
-
-#### Two-Factor Authentication
-- `useMfaAuthenticate()` - Authenticate with 2FA code
-- `useMfaReauthenticate()` - Reauthenticate with 2FA
-- `useMfaTrust()` - Trust current device
-
-#### WebAuthn
-- `useWebAuthnSignup()` - Register with WebAuthn
-- `useWebAuthnLogin()` - Login with WebAuthn
-- `useWebAuthnAuthenticate()` - Authenticate with WebAuthn
-- `useWebAuthnReauthenticate()` - Reauthenticate with WebAuthn
-
-### Account Management Hooks
-
-#### Email Management
-- `useEmailAddresses()` - List email addresses
-- `useAddEmailAddress()` - Add new email
-- `useRemoveEmailAddress()` - Remove email
-- `useSetPrimaryEmail()` - Set primary email
-- `useRequestEmailVerification()` - Request verification
-
-#### Phone Management
-- `usePhoneNumber()` - Get phone number
-- `useUpdatePhoneNumber()` - Update phone number
-- `useRemovePhoneNumber()` - Remove phone number
-
-#### Password
-- `useChangePassword()` - Change current password
-
-#### Provider Accounts
-- `useProviderAccounts()` - List connected providers
-- `useDisconnectProvider()` - Disconnect provider
-
-#### Authenticators (MFA)
-- `useAuthenticators()` - List authenticators
-- `useActivateTOTP()` - Activate TOTP authenticator
-- `useDeactivateTOTP()` - Deactivate TOTP
-- `useRegenerateRecoveryCodes()` - Generate new recovery codes
-- `useWebAuthnCredentials()` - List WebAuthn credentials
-- `useDeleteWebAuthnCredential()` - Delete WebAuthn credential
-
-### Session Management
-- `useListSessions()` - List all sessions
-- `useDeleteSession()` - Delete a session
-
-### Configuration
-- `useConfig()` - Get allauth configuration
-
-## Core Features
-
-### Authentication Provider
-
-The `AllauthProvider` component sets up both the authentication context and TanStack Query client:
+Simple password reset management.
 
 ```jsx
-import { AllauthProvider } from "@knowsuchagency/allauth-react";
-import { QueryClient } from "@tanstack/react-query";
+const {
+  requestReset,    // (email) => Promise
+  confirmReset,    // (key, password) => Promise
+  isRequesting,
+  isConfirming,
+  requestError,
+  confirmError,
+} = usePasswordReset();
+```
 
-// Optionally provide your own QueryClient
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 10, // 10 minutes
-    },
-  },
-});
+**Example: Password Reset Flow**
 
-function App() {
+```jsx
+function PasswordResetFlow() {
+  const { requestReset, confirmReset, isRequesting } = usePasswordReset();
+  const [step, setStep] = useState('request');
+
+  if (step === 'request') {
+    return (
+      <form onSubmit={async (e) => {
+        e.preventDefault();
+        const email = e.target.email.value;
+        await requestReset(email);
+        setStep('confirm');
+      }}>
+        <input name="email" type="email" required />
+        <button disabled={isRequesting}>
+          Send Reset Email
+        </button>
+      </form>
+    );
+  }
+
   return (
-    <AllauthProvider
-      baseUrl="https://api.example.com"
-      queryClient={queryClient}
-    >
-      {/* Your app components */}
-    </AllauthProvider>
+    <form onSubmit={async (e) => {
+      e.preventDefault();
+      const key = e.target.key.value;
+      const password = e.target.password.value;
+      await confirmReset(key, password);
+      // User is now logged in with new password
+    }}>
+      <input name="key" placeholder="Reset code from email" required />
+      <input name="password" type="password" required />
+      <button>Reset Password</button>
+    </form>
   );
 }
 ```
 
+### `useSocialAuth()` - Social Provider Authentication
+
+OAuth and social authentication management.
+
+```jsx
+const {
+  connectedProviders,    // List of connected accounts
+  hasProvider,           // (provider) => boolean
+  connect,               // (provider, callbackUrl) => Promise
+  disconnect,            // (provider, uid) => Promise
+  authenticateWithToken, // (tokenData) => Promise
+  isConnecting,
+  isDisconnecting,
+} = useSocialAuth();
+```
+
+**Example: Social Login Buttons**
+
+```jsx
+function SocialLogin() {
+  const { connectedProviders, connect, disconnect } = useSocialAuth();
+
+  const providers = ['google', 'github', 'facebook'];
+
+  return (
+    <div>
+      {providers.map(provider => {
+        const connected = connectedProviders.find(
+          p => p.provider.id === provider
+        );
+
+        if (connected) {
+          return (
+            <button 
+              key={provider}
+              onClick={() => disconnect(provider, connected.uid)}
+            >
+              Disconnect {provider}
+            </button>
+          );
+        }
+
+        return (
+          <button 
+            key={provider}
+            onClick={() => connect(provider, '/auth/callback')}
+          >
+            Connect with {provider}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+```
+
+## Advanced Usage
+
+For more control, you can use the granular hooks that map directly to the django-allauth API:
+
+### Authentication Hooks
+
+```jsx
+import { 
+  useAuthStatus,
+  useLogin,
+  useLogout,
+  useSignup,
+  useVerifyEmail,
+  useRequestPasswordReset,
+  useResetPassword,
+  // ... many more
+} from "@knowsuchagency/allauth-react";
+```
+
 ### Direct API Client Access
 
-For advanced use cases, you can access the API client directly:
+For cases not covered by hooks, access the API client directly:
 
 ```jsx
 import { getClient } from "@knowsuchagency/allauth-react";
 
-function MyComponent() {
+function CustomComponent() {
   const handleCustomAction = async () => {
     const client = getClient();
     const result = await client.getAuthenticationStatus();
@@ -199,197 +348,46 @@ function MyComponent() {
 }
 ```
 
-### Token Storage
+### Custom QueryClient Configuration
 
-The library provides reactive token storage with Zustand:
+Provide your own TanStack Query configuration:
+
+```jsx
+import { QueryClient } from "@tanstack/react-query";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 10, // 10 minutes
+      retry: 2,
+    },
+  },
+});
+
+function App() {
+  return (
+    <AllauthProvider queryClient={queryClient}>
+      <YourApp />
+    </AllauthProvider>
+  );
+}
+```
+
+### Token Management
+
+Access authentication tokens reactively:
 
 ```jsx
 import { useAuthTokens } from "@knowsuchagency/allauth-react";
 
-function TokenInfo() {
+function TokenDebug() {
   const { sessionToken, csrfToken, clearTokens } = useAuthTokens();
   
   return (
     <div>
-      <p>Session Token: {sessionToken}</p>
-      <button onClick={clearTokens}>Clear Tokens</button>
-    </div>
-  );
-}
-```
-
-## Example: Complete Authentication Flow
-
-```jsx
-import {
-  useAuthStatus,
-  useLogin,
-  useSignup,
-  useRequestPasswordReset,
-  useResetPassword,
-} from "@knowsuchagency/allauth-react";
-
-function AuthFlow() {
-  const auth = useAuthStatus();
-  const login = useLogin();
-  const signup = useSignup();
-  const requestReset = useRequestPasswordReset();
-  const resetPassword = useResetPassword();
-
-  // Check authentication
-  if (auth.data?.meta?.is_authenticated) {
-    return <Dashboard user={auth.data.data.user} />;
-  }
-
-  // Login
-  const handleLogin = async (email, password) => {
-    try {
-      await login.mutateAsync({ email, password });
-    } catch (error) {
-      console.error("Login failed:", error);
-    }
-  };
-
-  // Signup
-  const handleSignup = async (email, password) => {
-    try {
-      await signup.mutateAsync({ email, password });
-    } catch (error) {
-      console.error("Signup failed:", error);
-    }
-  };
-
-  // Password reset
-  const handlePasswordReset = async (email) => {
-    try {
-      await requestReset.mutateAsync({ email });
-      // Show "Check your email" message
-    } catch (error) {
-      console.error("Reset request failed:", error);
-    }
-  };
-
-  // Confirm password reset
-  const handleResetConfirm = async (key, password) => {
-    try {
-      await resetPassword.mutateAsync({ key, password });
-    } catch (error) {
-      console.error("Password reset failed:", error);
-    }
-  };
-
-  return (
-    <AuthenticationForm
-      onLogin={handleLogin}
-      onSignup={handleSignup}
-      onPasswordReset={handlePasswordReset}
-      onResetConfirm={handleResetConfirm}
-    />
-  );
-}
-```
-
-## Example: Email Management
-
-```jsx
-import {
-  useEmailAddresses,
-  useAddEmailAddress,
-  useSetPrimaryEmail,
-  useRemoveEmailAddress,
-} from "@knowsuchagency/allauth-react";
-
-function EmailManager() {
-  const emails = useEmailAddresses();
-  const addEmail = useAddEmailAddress();
-  const setPrimary = useSetPrimaryEmail();
-  const removeEmail = useRemoveEmailAddress();
-
-  const handleAddEmail = async (email) => {
-    await addEmail.mutateAsync({ email });
-  };
-
-  const handleSetPrimary = async (email) => {
-    await setPrimary.mutateAsync({ email, primary: true });
-  };
-
-  const handleRemoveEmail = async (email) => {
-    await removeEmail.mutateAsync({ email });
-  };
-
-  if (emails.isLoading) return <div>Loading...</div>;
-
-  return (
-    <div>
-      {emails.data?.data.map((emailObj) => (
-        <div key={emailObj.email}>
-          <span>{emailObj.email}</span>
-          {emailObj.primary && <span>(Primary)</span>}
-          {emailObj.verified && <span>✓ Verified</span>}
-          {!emailObj.primary && (
-            <button onClick={() => handleSetPrimary(emailObj.email)}>
-              Make Primary
-            </button>
-          )}
-          {!emailObj.primary && (
-            <button onClick={() => handleRemoveEmail(emailObj.email)}>
-              Remove
-            </button>
-          )}
-        </div>
-      ))}
-      <button onClick={() => handleAddEmail("new@example.com")}>
-        Add Email
-      </button>
-    </div>
-  );
-}
-```
-
-## Example: Two-Factor Authentication
-
-```jsx
-import {
-  useAuthenticators,
-  useActivateTOTP,
-  useDeactivateTOTP,
-  getTOTPAuthenticator,
-} from "@knowsuchagency/allauth-react";
-
-function TwoFactorSetup() {
-  const authenticators = useAuthenticators();
-  const activateTOTP = useActivateTOTP();
-  const deactivateTOTP = useDeactivateTOTP();
-
-  const setupTOTP = async () => {
-    // Get TOTP secret
-    const totpData = await getTOTPAuthenticator();
-    
-    // Show QR code to user
-    displayQRCode(totpData.data.totp_url);
-    
-    // User enters code from authenticator app
-    const code = await promptForCode();
-    
-    // Activate TOTP
-    await activateTOTP.mutateAsync({ code });
-  };
-
-  const removeTOTP = async () => {
-    await deactivateTOTP.mutateAsync();
-  };
-
-  const hasTOTP = authenticators.data?.data.some(
-    auth => auth.type === 'totp'
-  );
-
-  return (
-    <div>
-      {hasTOTP ? (
-        <button onClick={removeTOTP}>Disable 2FA</button>
-      ) : (
-        <button onClick={setupTOTP}>Enable 2FA</button>
-      )}
+      <p>Session: {sessionToken || 'none'}</p>
+      <p>CSRF: {csrfToken || 'none'}</p>
+      <button onClick={clearTokens}>Clear All Tokens</button>
     </div>
   );
 }
@@ -397,51 +395,179 @@ function TwoFactorSetup() {
 
 ## TypeScript
 
-The library is written in TypeScript and exports all types:
+Full TypeScript support with exported types:
 
 ```typescript
 import type {
   User,
-  AuthenticatedResponse,
+  UseAuthResult,
   LoginRequest,
   EmailAddress,
   ProviderAccount,
 } from "@knowsuchagency/allauth-react";
+
+interface Props {
+  onAuth: (result: UseAuthResult) => void;
+}
 ```
 
-## Query Key Management
+## Cache Management
 
-For cache invalidation and manual queries:
+Use TanStack Query's cache management with our query keys:
 
 ```jsx
-import { allauthQueryKeys } from "@knowsuchagency/allauth-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { allauthQueryKeys } from "@knowsuchagency/allauth-react";
 
-function RefreshAuth() {
+function RefreshButton() {
   const queryClient = useQueryClient();
 
-  const refreshAll = () => {
-    // Invalidate all auth-related queries
+  const refreshAuth = () => {
+    queryClient.invalidateQueries({ 
+      queryKey: allauthQueryKeys.authStatus() 
+    });
+  };
+
+  const refreshEverything = () => {
     queryClient.invalidateQueries({ 
       queryKey: allauthQueryKeys.all 
     });
   };
 
-  const refreshEmails = () => {
-    // Invalidate only email queries
-    queryClient.invalidateQueries({ 
-      queryKey: allauthQueryKeys.emailAddresses() 
-    });
-  };
-
   return (
     <>
-      <button onClick={refreshAll}>Refresh All</button>
-      <button onClick={refreshEmails}>Refresh Emails</button>
+      <button onClick={refreshAuth}>Refresh Auth</button>
+      <button onClick={refreshEverything}>Refresh All</button>
     </>
   );
 }
 ```
+
+## Complete Example Application
+
+```jsx
+import { 
+  AllauthProvider, 
+  useAuth, 
+  useEmailManagement, 
+  useSocialAuth 
+} from "@knowsuchagency/allauth-react";
+
+function App() {
+  return (
+    <AllauthProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/dashboard" element={<ProtectedRoute />} />
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+      </Router>
+    </AllauthProvider>
+  );
+}
+
+function ProtectedRoute() {
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  if (isLoading) return <div>Loading...</div>;
+  if (!isAuthenticated) return <Navigate to="/" />;
+  
+  return <Dashboard />;
+}
+
+function Home() {
+  const { isAuthenticated, login, signup } = useAuth();
+  
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" />;
+  }
+  
+  return (
+    <div>
+      <h1>Welcome</h1>
+      <LoginForm onSubmit={login} />
+      <SignupForm onSubmit={signup} />
+      <SocialAuthButtons />
+    </div>
+  );
+}
+
+function Dashboard() {
+  const { user, logout } = useAuth();
+  
+  return (
+    <div>
+      <h1>Hi, {user.display}!</h1>
+      <nav>
+        <Link to="/settings">Settings</Link>
+        <button onClick={logout}>Logout</button>
+      </nav>
+    </div>
+  );
+}
+
+function Settings() {
+  const { user } = useAuth();
+  const emailManagement = useEmailManagement();
+  const socialAuth = useSocialAuth();
+  
+  return (
+    <div>
+      <h1>Account Settings</h1>
+      
+      <section>
+        <h2>Profile</h2>
+        <p>Username: {user.username}</p>
+        <p>Email: {user.email}</p>
+      </section>
+      
+      <section>
+        <h2>Email Addresses</h2>
+        <EmailManager {...emailManagement} />
+      </section>
+      
+      <section>
+        <h2>Connected Accounts</h2>
+        <SocialAccounts {...socialAuth} />
+      </section>
+    </div>
+  );
+}
+```
+
+## API Reference
+
+### High-Level Hooks
+- `useAuth()` - Complete authentication management
+- `useEmailManagement()` - Email address operations
+- `usePasswordReset()` - Password reset flow
+- `useSocialAuth()` - Social provider management
+
+### Granular Hooks Structure
+Organized following the django-allauth OpenAPI specification:
+
+- **Authentication**
+  - Current Session: `useAuthStatus()`, `useLogout()`
+  - Account: `useLogin()`, `useSignup()`, `useReauthenticate()`
+  - Password Reset: `useRequestPasswordReset()`, `useResetPassword()`
+  - Email/Phone Verification: `useVerifyEmail()`, `useVerifyPhone()`
+  - Providers: `useProviderRedirect()`, `useProviderToken()`
+  - Two-Factor: `useMfaAuthenticate()`, `useMfaTrust()`
+  - WebAuthn: `useWebAuthnLogin()`, `useWebAuthnSignup()`
+
+- **Account Management**
+  - Email: `useEmailAddresses()`, `useAddEmailAddress()`, etc.
+  - Phone: `usePhoneNumber()`, `useUpdatePhoneNumber()`
+  - Password: `useChangePassword()`
+  - Providers: `useProviderAccounts()`, `useDisconnectProvider()`
+  - Authenticators: `useAuthenticators()`, `useActivateTOTP()`, etc.
+
+- **Sessions**
+  - `useListSessions()`, `useDeleteSession()`
+
+- **Configuration**
+  - `useConfig()` - Get allauth configuration
 
 ## License
 
