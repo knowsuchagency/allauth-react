@@ -14,7 +14,9 @@ A comprehensive React library for integrating with django-allauth's headless API
 ## Installation
 
 ```bash
-npx jsr add @knowsuchagency/allauth-react
+npm install @knowsuchagency/django-allauth
+# or
+bun add @knowsuchagency/django-allauth
 ```
 
 ## Quick Start
@@ -22,7 +24,7 @@ npx jsr add @knowsuchagency/allauth-react
 ### 1. Set up the Provider
 
 ```jsx
-import { AllauthProvider } from "@knowsuchagency/allauth-react";
+import { AllauthProvider } from "@knowsuchagency/django-allauth";
 
 function App() {
   return (
@@ -39,7 +41,7 @@ function App() {
 ### 2. Use the High-Level Hooks
 
 ```jsx
-import { useAuth } from "@knowsuchagency/allauth-react";
+import { useAuth } from "@knowsuchagency/django-allauth";
 
 function YourApp() {
   const { 
@@ -329,7 +331,7 @@ import {
   useRequestPasswordReset,
   useResetPassword,
   // ... many more
-} from "@knowsuchagency/allauth-react";
+} from "@knowsuchagency/django-allauth";
 ```
 
 ### Direct API Client Access
@@ -337,7 +339,7 @@ import {
 For cases not covered by hooks, access the API client directly:
 
 ```jsx
-import { getClient } from "@knowsuchagency/allauth-react";
+import { getClient } from "@knowsuchagency/django-allauth";
 
 function CustomComponent() {
   const handleCustomAction = async () => {
@@ -378,7 +380,7 @@ function App() {
 Access authentication tokens reactively:
 
 ```jsx
-import { useAuthTokens } from "@knowsuchagency/allauth-react";
+import { useAuthTokens } from "@knowsuchagency/django-allauth";
 
 function TokenDebug() {
   const { sessionToken, csrfToken, clearTokens } = useAuthTokens();
@@ -404,7 +406,7 @@ import type {
   LoginRequest,
   EmailAddress,
   ProviderAccount,
-} from "@knowsuchagency/allauth-react";
+} from "@knowsuchagency/django-allauth";
 
 interface Props {
   onAuth: (result: UseAuthResult) => void;
@@ -417,7 +419,7 @@ Use TanStack Query's cache management with our query keys:
 
 ```jsx
 import { useQueryClient } from "@tanstack/react-query";
-import { allauthQueryKeys } from "@knowsuchagency/allauth-react";
+import { allauthQueryKeys } from "@knowsuchagency/django-allauth";
 
 function RefreshButton() {
   const queryClient = useQueryClient();
@@ -451,7 +453,7 @@ import {
   useAuth, 
   useEmailManagement, 
   useSocialAuth 
-} from "@knowsuchagency/allauth-react";
+} from "@knowsuchagency/django-allauth";
 
 function App() {
   return (

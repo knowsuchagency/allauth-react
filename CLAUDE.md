@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a React hooks and components library for integrating with django-allauth's headless API. The library is published to JSR (JavaScript Registry) as `@knowsuchagency/allauth-react`.
+This is a React hooks and components library for integrating with django-allauth's headless API. The library is published to npm as `@knowsuchagency/django-allauth`.
 
 ## Development Commands
 
@@ -13,10 +13,16 @@ This is a React hooks and components library for integrating with django-allauth
 - Install dependencies: `bun install`
 - Add dependency: `bun add <package>`
 
+### Building
+- Build the package: `bun run build`
+- This creates CommonJS and ESM builds in the `dist` directory
+- TypeScript declarations are also generated
+
 ### Publishing
-- The package is published to JSR automatically via GitHub Actions when pushing to main
-- Manual publish: `npx jsr publish`
-- Version is managed in `jsr.json` (current: 0.11.0)
+- The package is published to npm automatically via GitHub Actions when pushing to main
+- Manual publish: `npm publish` (after running `bun run build`)
+- Version is managed in `package.json` (current: 0.12.1)
+- Requires NPM_TOKEN secret in GitHub repository settings for automated publishing
 
 ## Architecture
 

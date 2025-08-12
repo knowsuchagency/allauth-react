@@ -15,7 +15,11 @@
       "Bash(bunx tsc:*)",
       "Bash(bun run:*)",
       "Bash(npx jsr publish --dry-run)",
-      "Bash(npx jsr publish --dry-run --allow-dirty)"
+      "Bash(npx jsr publish --dry-run --allow-dirty)",
+      "Bash(npm whoami:*)",
+      "Bash(npm view:*)",
+      "Bash(npm org ls:*)",
+      "Bash(npm publish:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,19 +1,55 @@
 {
-  "name": "allauth-react",
+  "name": "@knowsuchagency/django-allauth",
+  "version": "0.13.0",
   "description": "A react client library for django-allauth",
-  "main": "index.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "lib"
+  ],
   "scripts": {
+    "build": "bun run build:clean && bun run build:js && bun run build:types",
+    "build:clean": "rm -rf dist",
+    "build:js": "bun build ./index.ts --outdir ./dist --format esm --external react --external @tanstack/react-query --external zustand && bun build ./index.ts --outdir ./dist --format cjs --outfile ./dist/index.js --external react --external @tanstack/react-query --external zustand",
+    "build:types": "bun x tsc --declaration --emitDeclarationOnly --outDir dist",
+    "prepublishOnly": "bun run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/knowsuchagency/allauth-react.git"
+  },
+  "keywords": [
+    "django",
+    "allauth",
+    "django-allauth",
+    "react",
+    "authentication",
+    "auth",
+    "tanstack-query",
+    "react-query"
+  ],
   "author": "Stephan Fitzpatrick",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/knowsuchagency/allauth-react/issues"
+  },
+  "homepage": "https://github.com/knowsuchagency/allauth-react#readme",
+  "peerDependencies": {
+    "react": ">=16.8.0"
+  },
   "dependencies": {
     "@tanstack/react-query": "^5.84.2",
-    "react": "^18.0.0",
     "zustand": "^5.0.7"
   },
   "devDependencies": {
     "@tanstack/eslint-plugin-query": "^5.83.1",
-    "@types/react": "^19.1.10"
+    "@types/react": "^19.1.10",
+    "typescript": "^5.9.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

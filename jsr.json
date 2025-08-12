@@ -1,6 +1,0 @@
-{
-  "name": "@knowsuchagency/allauth-react",
-  "version": "0.12.1",
-  "exports": "./index.ts",
-  "license": "MIT"
-}
