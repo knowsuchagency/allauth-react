@@ -128,85 +128,115 @@ export type {
 } from './lib/api/types';
 
 // ============================================================================
-// Authentication Hooks
+// Authentication Hooks - Current Session
 // ============================================================================
-export { useAuth, type UseAuthResult } from './lib/hooks/auth/useAuth';
-export { useLogin, type UseLoginResult } from './lib/hooks/auth/useLogin';
-export { useLogout, type UseLogoutResult } from './lib/hooks/auth/useLogout';
-export { useSignup, type UseSignupResult } from './lib/hooks/auth/useSignup';
-export { useLoginByCode } from './lib/hooks/auth/useLoginByCode';
-export { useReauthenticate } from './lib/hooks/auth/useReauthenticate';
+export { useAuthStatus } from './lib/hooks/authentication/current-session/useAuthStatus';
+export { useLogout } from './lib/hooks/authentication/current-session/useLogout';
 
 // ============================================================================
-// Email Hooks
+// Authentication Hooks - Account
 // ============================================================================
-export { 
-  useEmailAddresses, 
-  type UseEmailAddressesResult 
-} from './lib/hooks/email/useEmailAddresses';
+export { useLogin } from './lib/hooks/authentication/account/useLogin';
+export { useSignup } from './lib/hooks/authentication/account/useSignup';
+export { useReauthenticate } from './lib/hooks/authentication/account/useReauthenticate';
+export { getEmailVerificationInfo } from './lib/hooks/authentication/account/useEmailVerificationInfo';
+export { useVerifyEmail } from './lib/hooks/authentication/account/useVerifyEmail';
+export { useResendEmailVerification } from './lib/hooks/authentication/account/useResendEmailVerification';
+export { useVerifyPhone } from './lib/hooks/authentication/account/useVerifyPhone';
+export { useResendPhoneVerification } from './lib/hooks/authentication/account/useResendPhoneVerification';
 
 // ============================================================================
-// Phone Hooks
+// Authentication Hooks - Password Reset
 // ============================================================================
-export { 
-  usePhoneNumber, 
-  type UsePhoneNumberResult 
-} from './lib/hooks/phone/usePhoneNumber';
+export { useRequestPasswordReset } from './lib/hooks/authentication/password-reset/useRequestPasswordReset';
+export { getPasswordResetInfo } from './lib/hooks/authentication/password-reset/usePasswordResetInfo';
+export { useResetPassword } from './lib/hooks/authentication/password-reset/useResetPassword';
 
 // ============================================================================
-// Password Hooks
+// Authentication Hooks - Login by Code
 // ============================================================================
-export { usePasswordReset, type UsePasswordResetResult } from './lib/hooks/password/usePasswordReset';
-export { useChangePassword, type UseChangePasswordResult } from './lib/hooks/password/useChangePassword';
+export { useRequestLoginCode } from './lib/hooks/authentication/login-by-code/useRequestLoginCode';
+export { useConfirmLoginCode } from './lib/hooks/authentication/login-by-code/useConfirmLoginCode';
 
 // ============================================================================
-// Session Hooks
+// Authentication Hooks - Providers
 // ============================================================================
-export { 
-  useSessions, 
-  type UseSessionsResult 
-} from './lib/hooks/sessions/useSessions';
+export { useProviderRedirect } from './lib/hooks/authentication/providers/useProviderRedirect';
+export { useProviderToken } from './lib/hooks/authentication/providers/useProviderToken';
+export { useProviderSignupData } from './lib/hooks/authentication/providers/useProviderSignupData';
+export { useProviderSignup } from './lib/hooks/authentication/providers/useProviderSignup';
 
 // ============================================================================
-// Provider/Social Auth Hooks
+// Authentication Hooks - Two-Factor
 // ============================================================================
-export { 
-  useProviderAccounts, 
-  type UseProviderAccountsResult 
-} from './lib/hooks/providers/useProviderAccounts';
-export { useProviderAuth } from './lib/hooks/providers/useProviderAuth';
-export { 
-  useProviderSignup, 
-  type UseProviderSignupResult 
-} from './lib/hooks/providers/useProviderSignup';
+export { useMfaAuthenticate } from './lib/hooks/authentication/two-factor/useMfaAuthenticate';
+export { useMfaReauthenticate } from './lib/hooks/authentication/two-factor/useMfaReauthenticate';
+export { useMfaTrust } from './lib/hooks/authentication/two-factor/useMfaTrust';
+
+// ============================================================================
+// Authentication Hooks - WebAuthn
+// ============================================================================
+export { getWebAuthnSignupOptions } from './lib/hooks/authentication/webauthn/useWebAuthnSignupOptions';
+export { useWebAuthnSignup } from './lib/hooks/authentication/webauthn/useWebAuthnSignup';
+export { getWebAuthnLoginOptions } from './lib/hooks/authentication/webauthn/useWebAuthnLoginOptions';
+export { useWebAuthnLogin } from './lib/hooks/authentication/webauthn/useWebAuthnLogin';
+export { getWebAuthnAuthenticateOptions } from './lib/hooks/authentication/webauthn/useWebAuthnAuthenticateOptions';
+export { useWebAuthnAuthenticate } from './lib/hooks/authentication/webauthn/useWebAuthnAuthenticate';
+export { getWebAuthnReauthenticateOptions } from './lib/hooks/authentication/webauthn/useWebAuthnReauthenticateOptions';
+export { useWebAuthnReauthenticate } from './lib/hooks/authentication/webauthn/useWebAuthnReauthenticate';
+
+// ============================================================================
+// Account Hooks - Email
+// ============================================================================
+export { useEmailAddresses } from './lib/hooks/account/email/useEmailAddresses';
+export { useAddEmailAddress } from './lib/hooks/account/email/useAddEmailAddress';
+export { useRemoveEmailAddress } from './lib/hooks/account/email/useRemoveEmailAddress';
+export { useSetPrimaryEmail } from './lib/hooks/account/email/useSetPrimaryEmail';
+export { useRequestEmailVerification } from './lib/hooks/account/email/useRequestEmailVerification';
+
+// ============================================================================
+// Account Hooks - Phone
+// ============================================================================
+export { usePhoneNumber } from './lib/hooks/account/phone/usePhoneNumber';
+export { useUpdatePhoneNumber } from './lib/hooks/account/phone/useUpdatePhoneNumber';
+export { useRemovePhoneNumber } from './lib/hooks/account/phone/useRemovePhoneNumber';
+
+// ============================================================================
+// Account Hooks - Password
+// ============================================================================
+export { useChangePassword } from './lib/hooks/account/password/useChangePassword';
+
+// ============================================================================
+// Account Hooks - Providers
+// ============================================================================
+export { useProviderAccounts } from './lib/hooks/account/providers/useProviderAccounts';
+export { useDisconnectProvider } from './lib/hooks/account/providers/useDisconnectProvider';
+
+// ============================================================================
+// Account Hooks - Authenticators
+// ============================================================================
+export { useAuthenticators } from './lib/hooks/account/authenticators/useAuthenticators';
+
+// TOTP
+export { getTOTPAuthenticator } from './lib/hooks/account/authenticators/totp/useTOTPAuthenticator';
+export { useActivateTOTP } from './lib/hooks/account/authenticators/totp/useActivateTOTP';
+export { useDeactivateTOTP } from './lib/hooks/account/authenticators/totp/useDeactivateTOTP';
+
+// Recovery Codes
+export { getRecoveryCodes } from './lib/hooks/account/authenticators/recovery-codes/useRecoveryCodes';
+export { useRegenerateRecoveryCodes } from './lib/hooks/account/authenticators/recovery-codes/useRegenerateRecoveryCodes';
+
+// WebAuthn
+export { useWebAuthnCredentials } from './lib/hooks/account/authenticators/webauthn/useWebAuthnCredentials';
+export { useDeleteWebAuthnCredential } from './lib/hooks/account/authenticators/webauthn/useDeleteWebAuthnCredential';
+
+// ============================================================================
+// Sessions Hooks
+// ============================================================================
+export { useListSessions } from './lib/hooks/sessions/useListSessions';
+export { useDeleteSession } from './lib/hooks/sessions/useDeleteSession';
 
 // ============================================================================
 // Configuration Hook
 // ============================================================================
 export { useConfig } from './lib/hooks/config/useConfig';
-
-// ============================================================================
-// Multi-Factor Authentication Hooks
-// ============================================================================
-export { 
-  useAuthenticators, 
-  type UseAuthenticatorsResult 
-} from './lib/hooks/mfa/useAuthenticators';
-export { 
-  useMfaAuthenticate,
-  useMfaReauthenticate 
-} from './lib/hooks/mfa/useMfaAuthenticate';
-export { 
-  useRecoveryCodes, 
-  type UseRecoveryCodesResult 
-} from './lib/hooks/mfa/useRecoveryCodes';
-export { useMfaTrust } from './lib/hooks/mfa/useMfaTrust';
-
-// ============================================================================
-// WebAuthn Hooks
-// ============================================================================
-export { 
-  useWebAuthn, 
-  type UseWebAuthnResult 
-} from './lib/hooks/webauthn/useWebAuthn';
-

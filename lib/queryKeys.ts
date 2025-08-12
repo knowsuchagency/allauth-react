@@ -15,10 +15,12 @@ export const allauthQueryKeys = {
   
   // Email addresses
   emails: () => [...allauthQueryKeys.all, 'emails'] as const,
+  emailAddresses: () => [...allauthQueryKeys.all, 'emails'] as const, // Alias for backwards compatibility
   emailVerificationInfo: (key: string) => [...allauthQueryKeys.emails(), 'verify', key] as const,
   
   // Phone number
   phone: () => [...allauthQueryKeys.all, 'phone'] as const,
+  phoneNumber: () => [...allauthQueryKeys.all, 'phone'] as const, // Alias for backwards compatibility
   
   // Password reset
   passwordReset: () => [...allauthQueryKeys.all, 'password-reset'] as const,
@@ -26,6 +28,7 @@ export const allauthQueryKeys = {
   
   // Provider accounts
   providers: () => [...allauthQueryKeys.all, 'providers'] as const,
+  providerAccounts: () => [...allauthQueryKeys.all, 'providers'] as const, // Alias for backwards compatibility
   providerSignup: () => [...allauthQueryKeys.providers(), 'signup'] as const,
   
   // Authenticators (MFA)

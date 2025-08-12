@@ -4,12 +4,12 @@ A comprehensive React library for integrating with django-allauth's headless API
 
 ## Features
 
-✅ **Complete API Coverage** - All django-allauth headless endpoints implemented
-✅ **TanStack Query Integration** - Automatic caching, refetching, and optimistic updates
-✅ **TypeScript First** - Full type safety with comprehensive type exports
-✅ **Reactive Token Management** - Zustand-based storage with hooks
-✅ **Tree-Shakeable** - Import only what you need
-✅ **Simple API** - Clean, intuitive hooks that wrap complexity
+✅ **Complete API Coverage** - All django-allauth headless endpoints implemented  
+✅ **TanStack Query Integration** - Automatic caching, refetching, and optimistic updates  
+✅ **TypeScript First** - Full type safety with comprehensive type exports  
+✅ **Reactive Token Management** - Zustand-based storage with hooks  
+✅ **Tree-Shakeable** - Import only what you need  
+✅ **OpenAPI-Aligned Structure** - Hooks organized to mirror django-allauth's API structure  
 
 ## Installation
 
@@ -40,28 +40,30 @@ function App() {
 Then you can use the authentication hooks:
 
 ```jsx
-function AuthenticatedApp() {
-  const { user, isAuthenticated, isLoading } = useAuth();
-  const { login, isLoading: isLoggingIn } = useLogin();
-  const { logout, isLoading: isLoggingOut } = useLogout();
+import { useAuthStatus, useLogin, useLogout } from "@knowsuchagency/allauth-react";
 
-  if (isLoading) {
+function AuthenticatedApp() {
+  const auth = useAuthStatus();
+  const login = useLogin();
+  const logout = useLogout();
+
+  if (auth.isLoading) {
     return <div>Loading...</div>;
   }
 
-  if (!isAuthenticated) {
+  if (!auth.data?.meta?.is_authenticated) {
     return (
       <LoginForm
-        onSubmit={(email, password) => login({ email, password })}
-        isLoading={isLoggingIn}
+        onSubmit={(email, password) => login.mutate({ email, password })}
+        isLoading={login.isPending}
       />
     );
   }
 
   return (
     <div>
-      <h1>Welcome, {user.display}!</h1>
-      <button onClick={logout} disabled={isLoggingOut}>
+      <h1>Welcome, {auth.data.data.user.display}!</h1>
+      <button onClick={() => logout.mutate()} disabled={logout.isPending}>
         Logout
       </button>
     </div>
@@ -69,17 +71,98 @@ function AuthenticatedApp() {
 }
 ```
 
+## Hook Organization
+
+Hooks are organized to mirror the django-allauth OpenAPI specification structure:
+
+### Authentication Hooks
+
+#### Current Session
+- `useAuthStatus()` - Get current authentication status
+- `useLogout()` - Logout current user
+
+#### Account Management
+- `useLogin()` - Login with credentials
+- `useSignup()` - Register new account
+- `useReauthenticate()` - Reauthenticate for sensitive operations
+- `useVerifyEmail()` - Verify email address
+- `useResendEmailVerification()` - Resend verification email
+- `useVerifyPhone()` - Verify phone number
+- `useResendPhoneVerification()` - Resend phone verification
+
+#### Password Reset
+- `useRequestPasswordReset()` - Request password reset email
+- `getPasswordResetInfo()` - Get reset token info
+- `useResetPassword()` - Reset password with token
+
+#### Login by Code
+- `useRequestLoginCode()` - Request login code via email
+- `useConfirmLoginCode()` - Confirm code to login
+
+#### Provider Authentication
+- `useProviderRedirect()` - Redirect to OAuth provider
+- `useProviderToken()` - Authenticate with provider token
+- `useProviderSignupData()` - Get provider signup data
+- `useProviderSignup()` - Complete provider signup
+
+#### Two-Factor Authentication
+- `useMfaAuthenticate()` - Authenticate with 2FA code
+- `useMfaReauthenticate()` - Reauthenticate with 2FA
+- `useMfaTrust()` - Trust current device
+
+#### WebAuthn
+- `useWebAuthnSignup()` - Register with WebAuthn
+- `useWebAuthnLogin()` - Login with WebAuthn
+- `useWebAuthnAuthenticate()` - Authenticate with WebAuthn
+- `useWebAuthnReauthenticate()` - Reauthenticate with WebAuthn
+
+### Account Management Hooks
+
+#### Email Management
+- `useEmailAddresses()` - List email addresses
+- `useAddEmailAddress()` - Add new email
+- `useRemoveEmailAddress()` - Remove email
+- `useSetPrimaryEmail()` - Set primary email
+- `useRequestEmailVerification()` - Request verification
+
+#### Phone Management
+- `usePhoneNumber()` - Get phone number
+- `useUpdatePhoneNumber()` - Update phone number
+- `useRemovePhoneNumber()` - Remove phone number
+
+#### Password
+- `useChangePassword()` - Change current password
+
+#### Provider Accounts
+- `useProviderAccounts()` - List connected providers
+- `useDisconnectProvider()` - Disconnect provider
+
+#### Authenticators (MFA)
+- `useAuthenticators()` - List authenticators
+- `useActivateTOTP()` - Activate TOTP authenticator
+- `useDeactivateTOTP()` - Deactivate TOTP
+- `useRegenerateRecoveryCodes()` - Generate new recovery codes
+- `useWebAuthnCredentials()` - List WebAuthn credentials
+- `useDeleteWebAuthnCredential()` - Delete WebAuthn credential
+
+### Session Management
+- `useListSessions()` - List all sessions
+- `useDeleteSession()` - Delete a session
+
+### Configuration
+- `useConfig()` - Get allauth configuration
+
 ## Core Features
 
 ### Authentication Provider
 
-The `AllauthProvider` component sets up both the authentication context and TanStack Query client for your application.
+The `AllauthProvider` component sets up both the authentication context and TanStack Query client:
 
 ```jsx
 import { AllauthProvider } from "@knowsuchagency/allauth-react";
 import { QueryClient } from "@tanstack/react-query";
 
-// Optionally provide your own QueryClient with custom configuration
+// Optionally provide your own QueryClient
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -100,578 +183,265 @@ function App() {
 }
 ```
 
-### Authentication Hooks
+### Direct API Client Access
 
-#### `useAuth()` - Query hook for authentication status
-```jsx
-const { user, isAuthenticated, isLoading, isError, error, refetch } = useAuth();
-```
-
-#### `useLogin()` - Hook for user login
-```jsx
-const { login, isLoading, error } = useLogin();
-
-// Usage
-await login({ 
-  email: "user@example.com", 
-  password: "password" 
-});
-```
-
-#### `useLogout()` - Hook for user logout
-```jsx
-const { logout, isLoading } = useLogout();
-
-// Usage
-await logout();
-```
-
-#### `useSignup()` - Hook for user registration
-```jsx
-const { signup, isLoading, error } = useSignup();
-
-// Usage
-await signup({
-  email: "user@example.com",
-  password: "password",
-});
-```
-
-### Email Management
-
-Use the `useEmailAddresses` hook to manage email addresses:
+For advanced use cases, you can access the API client directly:
 
 ```jsx
-const {
-  emailAddresses,
-  isLoading,
-  add,
-  remove,
-  setPrimary,
-  verify,
-  requestVerification,
-  getVerificationInfo,
-  refetch,
-} = useEmailAddresses();
-
-// Add new email
-await add("new@example.com");
-
-// Set primary email
-await setPrimary("primary@example.com");
-
-// Request verification for an email
-await requestVerification("email@example.com");
-
-// Get information about an email verification key
-const info = await getVerificationInfo("verification-key");
-console.log(info.data.email); // Email being verified
-
-// Verify email with key
-await verify("verification-key");
-
-// Resend verification for pending email verification flow
-await resendVerification();
-```
-
-### Passwordless Authentication
-
-```jsx
-const { requestCode, confirmCode } = useLoginByCode();
-
-// Request a login code via email
-await requestCode.mutateAsync({ email: "user@example.com" });
-
-// Confirm the code to log in
-await confirmCode.mutateAsync({ code: "123456" });
-```
-
-### Reauthentication
-
-```jsx
-// Password reauthentication for sensitive operations
-const reauthenticate = useReauthenticate();
-await reauthenticate.mutateAsync({ password: "current-password" });
-
-// MFA reauthentication
-const mfaReauth = useMfaReauthenticate();
-await mfaReauth.mutateAsync();
-
-// WebAuthn reauthentication
-const { getReauthenticateOptions, reauthenticate: webauthnReauth } = useWebAuthn();
-const options = await getReauthenticateOptions();
-const assertion = await navigator.credentials.get(JSON.parse(options.data.request_options));
-await webauthnReauth(JSON.stringify(assertion));
-```
-
-### Social Provider Accounts
-
-Use the `useProviderAccounts` hook to manage connected social accounts:
-
-```jsx
-const {
-  accounts,
-  isLoading,
-  disconnect,
-  refetch,
-} = useProviderAccounts();
-
-// Disconnect a social account
-await disconnect("google", "account123");
-```
-
-For social authentication flows:
-
-```jsx
-const { redirect, token } = useProviderAuth();
-
-// Redirect-based flow
-await redirect.mutateAsync({
-  provider: "google",
-  callbackUrl: "/auth/callback",
-  process: "login", // or "connect"
-});
-
-// Token-based flow (for mobile apps)
-await token.mutateAsync({
-  provider: "google",
-  process: "login",
-  token: {
-    client_id: "your-client-id",
-    id_token: "oauth-id-token",
-    access_token: "oauth-access-token"
-  }
-});
-```
-
-### Password Management
-
-```jsx
-// Password reset flow
-const { request, confirm, getInfo } = usePasswordReset();
-
-// Request password reset
-await request("user@example.com");
-
-// Confirm password reset with key
-await confirm("reset-key", "new-password");
-
-// Change password for authenticated user
-const { changePassword } = useChangePassword();
-await changePassword("old-password", "new-password");
-
-// Get information about a password reset key
-const info = await getInfo("reset-key");
-console.log(info.data.user); // User associated with this reset key
-```
-
-### Session Management
-
-```jsx
-const {
-  sessions,
-  isLoading,
-  end,
-  endCurrent,
-  refetch,
-} = useSessions();
-
-// Delete current session (logout)
-await endCurrent();
-
-// Delete a specific session by ID
-await end(sessionId);
-
-// View active sessions
-sessions.forEach(session => {
-  console.log(session.ip, session.created_at);
-  console.log(session.is_current); // Is this the current session?
-});
-```
-
-## Advanced Usage
-
-### Query Keys
-
-The library exports query keys for advanced cache management:
-
-```jsx
-import { allauthQueryKeys } from "@knowsuchagency/allauth-react";
-import { useQueryClient } from "@tanstack/react-query";
-
-const queryClient = useQueryClient();
-
-// Invalidate specific queries
-queryClient.invalidateQueries({ 
-  queryKey: allauthQueryKeys.authStatus() 
-});
-
-// Invalidate all email-related queries
-queryClient.invalidateQueries({ 
-  queryKey: allauthQueryKeys.emails() 
-});
-
-// Helper functions for bulk invalidation
-import { getAuthInvalidationKeys, getAllInvalidationKeys } from "@knowsuchagency/allauth-react";
-
-// Invalidate all auth-related queries
-getAuthInvalidationKeys().forEach(key => {
-  queryClient.invalidateQueries({ queryKey: key });
-});
-```
-
-### Error Handling
-
-All hooks provide consistent error handling:
-
-```jsx
-const { login, isLoading, error } = useLogin();
-
-const handleLogin = async (email, password) => {
-  try {
-    await login({ email, password });
-  } catch (error) {
-    switch (error.code) {
-      case "invalid_credentials":
-        setError("Invalid email or password");
-        break;
-      case "email_verification_required":
-        navigate("/verify-email");
-        break;
-      default:
-        setError("An unexpected error occurred");
-    }
-  }
-};
-
-// Or use the error state directly
-{error && (
-  <div>Error: {error.message}</div>
-)}
-```
-
-### Optimistic Updates
-
-The library implements optimistic updates for better UX:
-
-- Login/signup immediately updates auth status
-- Email operations update the list optimistically
-- Social account disconnection reflects immediately
-
-### Background Refetching
-
-Authentication status is automatically refetched in the background to keep the session fresh. Configure this behavior via the QueryClient:
-
-```jsx
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // Consider data stale after 5 minutes
-      refetchOnWindowFocus: true,
-      refetchOnReconnect: true,
-    },
-  },
-});
-```
-
-## TypeScript Support
-
-The library is written in TypeScript and provides full type definitions:
-
-```typescript
-import type {
-  User,
-  EmailAddress,
-  ProviderAccount,
-  Session,
-  ErrorResponse,
-  AuthenticatedResponse,
-  ConfigurationResponse,
-} from "@knowsuchagency/allauth-react";
-
-// All hooks are fully typed
-const { user }: { user: User | null } = useAuth();
-
-// Mutation results include proper error types
-const loginMutation = useLogin();
-if (loginMutation.error) {
-  const error: ErrorResponse = loginMutation.error;
-  console.log(error.errors[0].message);
-}
-```
-
-## API Coverage
-
-### ✅ Implemented Features
-
-#### Authentication
-- Login (username/email + password)
-- Logout
-- Signup/Registration
-- Passwordless login via email code
-- Reauthentication for sensitive operations
-- Session management (list, delete)
-
-#### Email Management
-- Add/remove email addresses
-- Set primary email
-- Email verification with keys
-- Request verification
-- Resend verification
-- Get verification info
-
-#### Phone Number Management
-- Update phone number
-- Remove phone number
-- Phone verification with SMS codes
-- Resend verification codes
-
-#### Password Management
-- Password reset flow (request, confirm)
-- Change password
-- Get reset key info
-
-#### Social Authentication
-- Provider redirect flow
-- Token-based flow (mobile)
-- List connected accounts
-- Disconnect accounts
-- Complete provider signup (when additional info required)
-
-#### Multi-Factor Authentication (MFA)
-- TOTP authenticator setup and management
-- Recovery codes generation and regeneration
-- MFA authentication during login
-- MFA reauthentication for sensitive operations
-- Browser trust (skip MFA temporarily)
-
-#### WebAuthn / Passkeys
-- Passwordless login with biometrics
-- WebAuthn credential registration
-- Passkey authentication
-- WebAuthn for 2FA
-- Credential management
-
-#### Configuration
-- Fetch django-allauth settings
-- Available providers
-- Authentication methods
-- MFA configuration
-
-### Phone Number Management
-
-```jsx
-const {
-  phoneNumber,
-  isLoading,
-  updatePhone,
-  removePhone,
-  verifyPhone,
-  resendVerification,
-} = usePhoneNumber();
-
-// Update phone number
-await updatePhone.mutateAsync("+1234567890");
-
-// Verify with SMS code
-await verifyPhone.mutateAsync("123456");
-
-// Remove phone number
-await removePhone.mutateAsync();
-```
-
-### Multi-Factor Authentication (MFA)
-
-#### TOTP Authenticator Setup
-
-```jsx
-const { authenticators, getTOTP, setupTOTP, deactivateTOTP } = useAuthenticators();
-
-// Get TOTP setup info (includes secret and QR code URL)
-const totpInfo = await getTOTP();
-if (totpInfo.status === 404) {
-  // Show QR code: totpInfo.data.meta.totp_url
-  // User scans with authenticator app, then:
-  await setupTOTP.mutateAsync("123456");
-}
-
-// Deactivate TOTP
-await deactivateTOTP.mutateAsync();
-```
-
-#### Recovery Codes
-
-```jsx
-const { recoveryCodes, regenerateCodes, isRegenerating } = useRecoveryCodes();
-
-// Display recovery codes (save these securely!)
-if (recoveryCodes) {
-  recoveryCodes.unused_codes.forEach(code => console.log(code));
-}
-
-// Generate new recovery codes
-await regenerateCodes();
-```
-
-#### MFA During Login
-
-```jsx
-// When login returns 401 with mfa_authenticate flow
-const mfaAuth = useMfaAuthenticate();
-await mfaAuth.mutateAsync("123456"); // TOTP or recovery code
-
-// For MFA reauthentication
-const mfaReauth = useMfaReauthenticate();
-await mfaReauth.mutateAsync();
-
-// Trust this browser (skip MFA temporarily)
-const trustBrowser = useMfaTrust();
-await trustBrowser.mutateAsync(true);
-```
-
-### WebAuthn / Passkeys
-
-```jsx
-const {
-  credentials,
-  getSignupOptions,
-  signup,
-  getLoginOptions,
-  login,
-  deleteCredential,
-} = useWebAuthn();
-
-// Register new WebAuthn credential
-const options = await getSignupOptions();
-// Use WebAuthn API to create credential
-const credential = await navigator.credentials.create(JSON.parse(options.data.creation_options));
-await signup({ 
-  credential: JSON.stringify(credential),
-  email: "user@example.com" 
-});
-
-// Login with WebAuthn
-const loginOptions = await getLoginOptions();
-const assertion = await navigator.credentials.get(JSON.parse(loginOptions.data.request_options));
-await login(JSON.stringify(assertion));
-
-// Manage credentials
-await deleteCredential("credential-id");
-```
-
-### Provider Signup Completion
-
-```jsx
-const { signupInfo, completeSignup, refetch } = useProviderSignup();
-
-// Check if provider signup is pending (after social login)
-if (signupInfo) {
-  // Show form to collect missing data
-  console.log(signupInfo.account.provider); // e.g., "google"
-  console.log(signupInfo.email_addresses); // Available emails
-  
-  // Complete signup with additional data
-  await completeSignup({
-    email: signupInfo.email || "user@example.com",
-    username: "desired-username"
-  });
-}
-```
-
-## Advanced Features
-
-### Configuration Hook
-
-Fetch django-allauth configuration settings:
-
-```jsx
-const { data: config, isLoading } = useConfig();
-
-if (config) {
-  console.log(config.account.authentication_method); // "email", "username", or "username_email"
-  console.log(config.socialaccount.providers); // Available social providers
-  console.log(config.mfa.supported_types); // Available MFA methods
+import { getClient } from "@knowsuchagency/allauth-react";
+
+function MyComponent() {
+  const handleCustomAction = async () => {
+    const client = getClient();
+    const result = await client.getAuthenticationStatus();
+    console.log(result);
+  };
 }
 ```
 
 ### Token Storage
 
-The library uses Zustand for reactive token management:
+The library provides reactive token storage with Zustand:
 
 ```jsx
 import { useAuthTokens } from "@knowsuchagency/allauth-react";
 
-function TokenMonitor() {
+function TokenInfo() {
   const { sessionToken, csrfToken, clearTokens } = useAuthTokens();
   
   return (
     <div>
-      <p>Session: {sessionToken ? "Active" : "None"}</p>
-      <button onClick={clearTokens}>Clear All Tokens</button>
+      <p>Session Token: {sessionToken}</p>
+      <button onClick={clearTokens}>Clear Tokens</button>
     </div>
   );
 }
 ```
 
-### Client Types
-
-The library supports both browser and app client types:
+## Example: Complete Authentication Flow
 
 ```jsx
-// For browser applications (default)
-<AllauthProvider 
-  baseUrl="https://api.example.com"
-  clientType="browser"
->
+import {
+  useAuthStatus,
+  useLogin,
+  useSignup,
+  useRequestPasswordReset,
+  useResetPassword,
+} from "@knowsuchagency/allauth-react";
 
-// For mobile/native applications
-<AllauthProvider 
-  baseUrl="https://api.example.com"
-  clientType="app"
->
-```
+function AuthFlow() {
+  const auth = useAuthStatus();
+  const login = useLogin();
+  const signup = useSignup();
+  const requestReset = useRequestPasswordReset();
+  const resetPassword = useResetPassword();
 
-## Testing
+  // Check authentication
+  if (auth.data?.meta?.is_authenticated) {
+    return <Dashboard user={auth.data.data.user} />;
+  }
 
-When testing components that use these hooks, wrap them in the `AllauthProvider`:
+  // Login
+  const handleLogin = async (email, password) => {
+    try {
+      await login.mutateAsync({ email, password });
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
+  };
 
-```jsx
-import { render, screen } from "@testing-library/react";
-import { AllauthProvider } from "@knowsuchagency/allauth-react";
-import { QueryClient } from "@tanstack/react-query";
+  // Signup
+  const handleSignup = async (email, password) => {
+    try {
+      await signup.mutateAsync({ email, password });
+    } catch (error) {
+      console.error("Signup failed:", error);
+    }
+  };
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: { retry: false },
-    mutations: { retry: false },
-  },
-});
+  // Password reset
+  const handlePasswordReset = async (email) => {
+    try {
+      await requestReset.mutateAsync({ email });
+      // Show "Check your email" message
+    } catch (error) {
+      console.error("Reset request failed:", error);
+    }
+  };
 
-test("renders authenticated content", () => {
-  render(
-    <AllauthProvider 
-      baseUrl="http://test.com"
-      queryClient={queryClient}
-    >
-      <YourComponent />
-    </AllauthProvider>
+  // Confirm password reset
+  const handleResetConfirm = async (key, password) => {
+    try {
+      await resetPassword.mutateAsync({ key, password });
+    } catch (error) {
+      console.error("Password reset failed:", error);
+    }
+  };
+
+  return (
+    <AuthenticationForm
+      onLogin={handleLogin}
+      onSignup={handleSignup}
+      onPasswordReset={handlePasswordReset}
+      onResetConfirm={handleResetConfirm}
+    />
   );
-});
+}
 ```
 
-## Benefits of TanStack Query Integration
+## Example: Email Management
 
-- **Automatic Caching**: Reduces unnecessary API calls
-- **Background Refetching**: Keeps data fresh automatically
-- **Optimistic Updates**: Instant UI feedback
-- **Request Deduplication**: Multiple components can request the same data
-- **Built-in Loading/Error States**: Consistent state management
-- **DevTools Support**: Inspect cache and queries with React Query DevTools
-- **Suspense Ready**: Compatible with React Suspense for data fetching
+```jsx
+import {
+  useEmailAddresses,
+  useAddEmailAddress,
+  useSetPrimaryEmail,
+  useRemoveEmailAddress,
+} from "@knowsuchagency/allauth-react";
 
-## Contributing
+function EmailManager() {
+  const emails = useEmailAddresses();
+  const addEmail = useAddEmailAddress();
+  const setPrimary = useSetPrimaryEmail();
+  const removeEmail = useRemoveEmailAddress();
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+  const handleAddEmail = async (email) => {
+    await addEmail.mutateAsync({ email });
+  };
+
+  const handleSetPrimary = async (email) => {
+    await setPrimary.mutateAsync({ email, primary: true });
+  };
+
+  const handleRemoveEmail = async (email) => {
+    await removeEmail.mutateAsync({ email });
+  };
+
+  if (emails.isLoading) return <div>Loading...</div>;
+
+  return (
+    <div>
+      {emails.data?.data.map((emailObj) => (
+        <div key={emailObj.email}>
+          <span>{emailObj.email}</span>
+          {emailObj.primary && <span>(Primary)</span>}
+          {emailObj.verified && <span>✓ Verified</span>}
+          {!emailObj.primary && (
+            <button onClick={() => handleSetPrimary(emailObj.email)}>
+              Make Primary
+            </button>
+          )}
+          {!emailObj.primary && (
+            <button onClick={() => handleRemoveEmail(emailObj.email)}>
+              Remove
+            </button>
+          )}
+        </div>
+      ))}
+      <button onClick={() => handleAddEmail("new@example.com")}>
+        Add Email
+      </button>
+    </div>
+  );
+}
+```
+
+## Example: Two-Factor Authentication
+
+```jsx
+import {
+  useAuthenticators,
+  useActivateTOTP,
+  useDeactivateTOTP,
+  getTOTPAuthenticator,
+} from "@knowsuchagency/allauth-react";
+
+function TwoFactorSetup() {
+  const authenticators = useAuthenticators();
+  const activateTOTP = useActivateTOTP();
+  const deactivateTOTP = useDeactivateTOTP();
+
+  const setupTOTP = async () => {
+    // Get TOTP secret
+    const totpData = await getTOTPAuthenticator();
+    
+    // Show QR code to user
+    displayQRCode(totpData.data.totp_url);
+    
+    // User enters code from authenticator app
+    const code = await promptForCode();
+    
+    // Activate TOTP
+    await activateTOTP.mutateAsync({ code });
+  };
+
+  const removeTOTP = async () => {
+    await deactivateTOTP.mutateAsync();
+  };
+
+  const hasTOTP = authenticators.data?.data.some(
+    auth => auth.type === 'totp'
+  );
+
+  return (
+    <div>
+      {hasTOTP ? (
+        <button onClick={removeTOTP}>Disable 2FA</button>
+      ) : (
+        <button onClick={setupTOTP}>Enable 2FA</button>
+      )}
+    </div>
+  );
+}
+```
+
+## TypeScript
+
+The library is written in TypeScript and exports all types:
+
+```typescript
+import type {
+  User,
+  AuthenticatedResponse,
+  LoginRequest,
+  EmailAddress,
+  ProviderAccount,
+} from "@knowsuchagency/allauth-react";
+```
+
+## Query Key Management
+
+For cache invalidation and manual queries:
+
+```jsx
+import { allauthQueryKeys } from "@knowsuchagency/allauth-react";
+import { useQueryClient } from "@tanstack/react-query";
+
+function RefreshAuth() {
+  const queryClient = useQueryClient();
+
+  const refreshAll = () => {
+    // Invalidate all auth-related queries
+    queryClient.invalidateQueries({ 
+      queryKey: allauthQueryKeys.all 
+    });
+  };
+
+  const refreshEmails = () => {
+    // Invalidate only email queries
+    queryClient.invalidateQueries({ 
+      queryKey: allauthQueryKeys.emailAddresses() 
+    });
+  };
+
+  return (
+    <>
+      <button onClick={refreshAll}>Refresh All</button>
+      <button onClick={refreshEmails}>Refresh Emails</button>
+    </>
+  );
+}
+```
 
 ## License
 
