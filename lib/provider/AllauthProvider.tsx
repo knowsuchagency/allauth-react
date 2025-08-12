@@ -34,7 +34,7 @@ function createDefaultQueryClient(): QueryClient {
       queries: {
         staleTime: 1000 * 60 * 5, // 5 minutes
         gcTime: 1000 * 60 * 10, // 10 minutes (formerly cacheTime)
-        retry: (failureCount, error: any) => {
+        retry: (failureCount: number, error: any) => {
           // Don't retry on 4xx errors except 408 and 429
           if (
             error?.status >= 400 &&

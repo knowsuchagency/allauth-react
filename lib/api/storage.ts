@@ -1,5 +1,5 @@
 import { create, type UseBoundStore, type StoreApi } from 'zustand';
-import { persist, createJSONStorage, type PersistOptions } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import type { StorageInterface } from './types';
 
 // ============================================================================

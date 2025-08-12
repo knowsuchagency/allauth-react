@@ -18,7 +18,6 @@ import type {
   WebAuthnCredentialCreationOptions,
   WebAuthnCredentialRequestOptions,
   SessionsResponse,
-  ErrorResponse,
   LoginRequest,
   SignupRequest,
   LoginByCodeRequest,
