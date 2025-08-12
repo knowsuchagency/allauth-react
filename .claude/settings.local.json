@@ -19,7 +19,8 @@
       "Bash(npm whoami:*)",
       "Bash(npm view:*)",
       "Bash(npm org ls:*)",
-      "Bash(npm publish:*)"
+      "Bash(npm publish:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
