@@ -124,13 +124,18 @@ export class AllauthClient {
       }
     }
 
-    // Fetch CSRF token if endpoint is provided and on non-GET requests
-    if (
-      this.csrfTokenUrl &&
-      options.method !== "GET" &&
-      options.method !== undefined
-    ) {
-      const csrfToken = await this.fetchCSRFToken();
+    // Handle CSRF token for non-GET requests
+    if (options.method !== "GET" && options.method !== undefined) {
+      let csrfToken: string | null = null;
+      
+      // If CSRF endpoint is provided, fetch from there
+      if (this.csrfTokenUrl) {
+        csrfToken = await this.fetchCSRFToken();
+      } else {
+        // Otherwise, try to get it from cookies (for Django-served frontends)
+        csrfToken = await this.storage.getCSRFToken();
+      }
+      
       if (csrfToken) {
         headers.set("X-CSRFToken", csrfToken);
         await this.storage.setCSRFToken(csrfToken);
