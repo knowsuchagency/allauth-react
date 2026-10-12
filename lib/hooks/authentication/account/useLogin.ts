@@ -29,6 +29,11 @@ export function useLogin(): UseMutationResult<
       if (data.status === 200) {
         queryClient.setQueryData(allauthQueryKeys.authStatus(), data);
         queryClient.invalidateQueries({ queryKey: getAuthInvalidationKeys() });
+      } else if (data.status === 401) {
+        // Not an error: another step is pending (e.g. mfa_authenticate or
+        // verify_email). The session endpoint would return this same payload,
+        // so store it to expose the pending flow through the auth status.
+        queryClient.setQueryData(allauthQueryKeys.authStatus(), data);
       }
     },
   });

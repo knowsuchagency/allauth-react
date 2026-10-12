@@ -15,7 +15,8 @@
     "build:js": "bun build ./index.ts --outfile ./dist/index.esm.js --format esm --external react --external @tanstack/react-query --external zustand && bun build ./index.ts --outfile ./dist/index.js --format cjs --external react --external @tanstack/react-query --external zustand",
     "build:types": "bun x tsc --declaration --emitDeclarationOnly --outDir dist",
     "prepublishOnly": "bun run build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
   },
   "repository": {
     "type": "git",
@@ -45,8 +46,12 @@
     "zustand": "^5.0.7"
   },
   "devDependencies": {
+    "@happy-dom/global-registrator": "^21.0.1",
     "@tanstack/eslint-plugin-query": "^5.83.1",
+    "@testing-library/react": "^16.3.0",
     "@types/react": "^19.1.10",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "typescript": "^5.9.2"
   },
   "publishConfig": {
