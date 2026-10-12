@@ -16,7 +16,7 @@
     "build:types": "bun x tsc --declaration --emitDeclarationOnly --outDir dist",
     "prepublishOnly": "bun run build",
     "test": "bun test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc -p tsconfig.test.json"
   },
   "repository": {
     "type": "git",

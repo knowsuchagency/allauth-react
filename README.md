@@ -422,7 +422,11 @@ function TokenDebug() {
 
 ## TypeScript
 
-Full TypeScript support with exported types:
+Full TypeScript support with exported types. Response types follow the
+[django-allauth headless API spec](https://docs.allauth.org/en/latest/headless/openapi-specification/).
+Keys the server can leave out are optional: for example `config.data.socialaccount`,
+`config.data.mfa` and `config.data.usersessions` are only present when that
+Django app is enabled, so check them before use (`config.data.mfa?.supported_types`).
 
 ```typescript
 import type {
