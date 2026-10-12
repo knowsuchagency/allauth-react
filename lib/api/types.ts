@@ -8,6 +8,8 @@ export type AuthenticatorType = "recovery_codes" | "totp" | "webauthn";
 
 export type AuthenticationMethod = "email" | "username" | "username_email";
 
+export type LoginMethod = "email" | "username" | "phone";
+
 export type FlowId = 
   | "verify_email"
   | "verify_phone"
@@ -18,6 +20,8 @@ export type FlowId =
   | "provider_signup"
   | "provider_token"
   | "mfa_authenticate"
+  | "mfa_login_webauthn"
+  | "mfa_signup_webauthn"
   | "mfa_trust"
   | "reauthenticate"
   | "mfa_reauthenticate"
@@ -52,6 +56,7 @@ export interface Provider {
   id: string;
   name: string;
   client_id?: string;
+  openid_configuration_url?: string;
   flows: ("provider_redirect" | "provider_token")[];
 }
 
@@ -59,6 +64,7 @@ export interface AuthenticationMethodDetails {
   at: number;
   email?: string;
   username?: string;
+  phone?: string;
   reauthenticated?: boolean;
   provider?: string;
   uid?: string;
@@ -66,34 +72,50 @@ export interface AuthenticationMethodDetails {
 }
 
 export interface AuthMethod extends AuthenticationMethodDetails {
-  method: "password" | "socialaccount" | "mfa" | "webauthn";
+  method: "password" | "password_reset" | "code" | "socialaccount" | "mfa" | "webauthn";
 }
 
 // ============================================================================
 // Configuration
 // ============================================================================
 
+export interface AccountConfiguration {
+  login_methods?: LoginMethod[];
+  is_open_for_signup: boolean;
+  email_verification_by_code_enabled: boolean;
+  login_by_code_enabled: boolean;
+  password_reset_by_code_enabled?: boolean;
+  /**
+   * @deprecated Sent by django-allauth for backwards compatibility only;
+   * use `login_methods`.
+   */
+  authentication_method?: AuthenticationMethod;
+}
+
+export interface SocialAccountConfiguration {
+  providers: Provider[];
+}
+
+export interface MFAConfiguration {
+  supported_types: AuthenticatorType[];
+  passkey_login_enabled?: boolean;
+}
+
+export interface UserSessionsConfiguration {
+  track_activity: boolean;
+}
+
+/**
+ * `socialaccount`, `mfa` and `usersessions` are only present when the
+ * matching Django app is installed and enabled on the server.
+ */
 export interface ConfigurationResponse {
   status: 200;
   data: {
-    account: {
-      authentication_method: AuthenticationMethod;
-      email_verification: "none" | "optional" | "mandatory";
-      login_on_email_confirmation: boolean;
-      phone_verification: "none" | "optional" | "mandatory";
-      signup_form_fields: string[];
-    };
-    socialaccount: {
-      providers: Provider[];
-    };
-    mfa: {
-      supported_types: AuthenticatorType[];
-      passkey_login_enabled: boolean;
-      trust_enabled: boolean;
-    };
-    usersessions: {
-      track_activity: boolean;
-    };
+    account: AccountConfiguration;
+    socialaccount?: SocialAccountConfiguration;
+    mfa?: MFAConfiguration;
+    usersessions?: UserSessionsConfiguration;
   };
 }
 
@@ -119,6 +141,24 @@ export interface AuthenticatedResponse {
     user: User;
     methods: AuthMethod[];
     flows?: Flow[];
+  };
+  meta: {
+    is_authenticated: true;
+    session_token?: string;
+    access_token?: string;
+  };
+}
+
+/**
+ * Returned with a 401 when an authenticated user must reauthenticate before
+ * a sensitive action. `flows` lists the available reauthentication flows.
+ */
+export interface ReauthenticationResponse {
+  status: 401;
+  data: {
+    flows: Flow[];
+    user: User;
+    methods: AuthMethod[];
   };
   meta: {
     is_authenticated: true;
@@ -174,10 +214,16 @@ export interface PhoneNumber {
   verified: boolean;
 }
 
+/**
+ * GET /account/phone answers 200; changing the number answers 202 while the
+ * new number awaits verification. `data` is empty when no phone is set.
+ */
 export interface PhoneNumberResponse {
-  status: 200;
-  data: PhoneNumber;
+  status: 200 | 202;
+  data: PhoneNumber[];
 }
+
+export type PhoneNumbersResponse = PhoneNumberResponse;
 
 // ============================================================================
 // Password Management
@@ -186,7 +232,7 @@ export interface PhoneNumberResponse {
 export interface PasswordResetInfoResponse {
   status: 200;
   data: {
-    user: User;
+    user?: User;
   };
 }
 
@@ -208,14 +254,9 @@ export interface ProviderAccountsResponse {
 export interface ProviderSignupResponse {
   status: 200;
   data: {
-    account: {
-      provider: Provider;
-      uid: string;
-      display: string;
-    };
-    email?: string;
-    email_addresses: EmailAddress[];
-    user?: Partial<User>;
+    account: ProviderAccount;
+    email: EmailAddress[];
+    user: User;
   };
 }
 
@@ -239,11 +280,12 @@ export interface RecoveryCodesAuthenticator {
 
 export interface WebAuthnAuthenticator {
   type: "webauthn";
+  id: number;
   last_used_at: number | null;
   created_at: number;
   name: string;
-  is_passkey: boolean;
-  is_passwordless: boolean;
+  /** Omitted when the server cannot tell. */
+  is_passwordless?: boolean;
 }
 
 export type Authenticator = TOTPAuthenticator | RecoveryCodesAuthenticator | WebAuthnAuthenticator;
@@ -265,15 +307,17 @@ export interface SensitiveRecoveryCodesAuthenticatorResponse {
 export interface TOTPAuthenticatorResponse {
   status: 200;
   data: TOTPAuthenticator;
+  meta?: {
+    recovery_codes_generated?: boolean;
+  };
 }
 
+/** No TOTP authenticator yet: `meta` holds the secret to set one up. */
 export interface NoTOTPAuthenticatorResponse {
   status: 404;
-  data: {
-    meta: {
-      secret: string;
-      totp_url: string;
-    };
+  meta: {
+    secret: string;
+    totp_url: string;
   };
 }
 
@@ -281,17 +325,24 @@ export interface NoTOTPAuthenticatorResponse {
 // WebAuthn
 // ============================================================================
 
+/**
+ * A WebAuthn options or credential object in its JSON form, as used by
+ * `PublicKeyCredential.parseCreationOptionsFromJSON()`,
+ * `parseRequestOptionsFromJSON()` and `credential.toJSON()`.
+ */
+export type WebAuthnJSON = Record<string, any>;
+
 export interface WebAuthnCredentialCreationOptions {
   status: 200;
   data: {
-    creation_options: string; // JSON string to be parsed by frontend
+    creation_options: WebAuthnJSON;
   };
 }
 
 export interface WebAuthnCredentialRequestOptions {
   status: 200;
   data: {
-    request_options: string; // JSON string to be parsed by frontend
+    request_options: WebAuthnJSON;
   };
 }
 
@@ -336,8 +387,23 @@ export interface ConflictResponse {
   status: 409;
 }
 
+export interface NotFoundResponse {
+  status: 404;
+}
+
 export interface GoneResponse {
   status: 410;
+}
+
+/** The session expired or was ended (410). */
+export interface SessionGoneResponse {
+  status: 410;
+  data: Record<string, never>;
+  meta: {
+    is_authenticated: boolean;
+    session_token?: string;
+    access_token?: string;
+  };
 }
 
 export interface TooManyRequestsResponse {
@@ -355,6 +421,7 @@ export interface TooManyRequestsResponse {
 export interface LoginRequest {
   email?: string;
   username?: string;
+  phone?: string;
   password: string;
   code?: string; // For 2FA
 }
@@ -367,8 +434,10 @@ export interface SignupRequest {
   [key: string]: any; // For custom signup fields
 }
 
+/** Provide either `email` or `phone`. */
 export interface LoginByCodeRequest {
-  email: string;
+  email?: string;
+  phone?: string;
 }
 
 export interface ConfirmLoginCodeRequest {
@@ -393,7 +462,8 @@ export interface PasswordResetConfirmRequest {
 }
 
 export interface PasswordChangeRequest {
-  current_password: string;
+  /** Omit when the user has no usable password yet. */
+  current_password?: string;
   new_password: string;
 }
 
@@ -440,11 +510,13 @@ export interface TOTPActivateRequest {
 }
 
 export interface WebAuthnLoginRequest {
-  credential: string; // JSON string of credential
+  /** The credential as JSON (`credential.toJSON()`), or that JSON serialized to a string. */
+  credential: WebAuthnJSON | string;
 }
 
 export interface WebAuthnSignupRequest {
-  credential: string; // JSON string of credential
+  /** The credential as JSON (`credential.toJSON()`), or that JSON serialized to a string. */
+  credential: WebAuthnJSON | string;
   name?: string;
   email?: string;
   username?: string;
@@ -470,11 +542,16 @@ export interface StorageInterface {
 // Response Union Types
 // ============================================================================
 
-export type AuthResponse = AuthenticatedResponse | AuthenticationResponse | NotAuthenticatedResponse;
+export type AuthResponse =
+  | AuthenticatedResponse
+  | AuthenticationResponse
+  | NotAuthenticatedResponse
+  | ReauthenticationResponse;
 export type APIResponse = 
   | AuthenticatedResponse 
   | AuthenticationResponse 
   | NotAuthenticatedResponse
+  | ReauthenticationResponse
   | ConfigurationResponse
   | EmailAddressesResponse
   | EmailVerificationInfoResponse
@@ -492,5 +569,7 @@ export type APIResponse =
   | ErrorResponse
   | ForbiddenResponse
   | ConflictResponse
+  | NotFoundResponse
   | GoneResponse
+  | SessionGoneResponse
   | TooManyRequestsResponse;

@@ -38,6 +38,7 @@ import type {
   WebAuthnLoginRequest,
   WebAuthnSignupRequest,
   ProviderDisconnectRequest,
+  WebAuthnJSON,
 } from './types';
 import { getStorage } from './storage';
 
@@ -374,7 +375,7 @@ export class AllauthClient {
     return this.request<PhoneNumberResponse>(
       '/account/phone',
       {
-        method: 'PUT',
+        method: 'POST',
         body: JSON.stringify({ phone }),
       }
     );
@@ -670,7 +671,7 @@ export class AllauthClient {
     );
   }
 
-  async webAuthnAuthenticate(credential: string): Promise<
+  async webAuthnAuthenticate(credential: WebAuthnJSON | string): Promise<
     AuthenticatedResponse | AuthenticationResponse
   > {
     return this.request<AuthenticatedResponse | AuthenticationResponse>(
@@ -689,7 +690,7 @@ export class AllauthClient {
     );
   }
 
-  async webAuthnReauthenticate(credential: string): Promise<
+  async webAuthnReauthenticate(credential: WebAuthnJSON | string): Promise<
     AuthenticatedResponse > {
     return this.request<AuthenticatedResponse>(
       '/auth/webauthn/reauthenticate',

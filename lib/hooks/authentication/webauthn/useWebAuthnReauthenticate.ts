@@ -3,7 +3,8 @@ import { getClient } from '../../../api/client';
 import { allauthQueryKeys } from '../../../queryKeys';
 import type { 
   AuthenticatedResponse,
-  ErrorResponse 
+  ErrorResponse,
+  WebAuthnJSON,
 } from '../../../api/types';
 
 /**
@@ -12,7 +13,7 @@ import type {
 export function useWebAuthnReauthenticate(): UseMutationResult<
   AuthenticatedResponse,
   ErrorResponse,
-  string
+  WebAuthnJSON | string
 > {
   const client = getClient();
   const queryClient = useQueryClient();
@@ -20,7 +21,7 @@ export function useWebAuthnReauthenticate(): UseMutationResult<
   return useMutation<
     AuthenticatedResponse,
     ErrorResponse,
-    string
+    WebAuthnJSON | string
   >({
     mutationFn: (credential) => client.webAuthnReauthenticate(credential),
     onSuccess: (data) => {

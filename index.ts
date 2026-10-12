@@ -46,6 +46,7 @@ export type {
   ClientType,
   AuthenticatorType,
   AuthenticationMethod,
+  LoginMethod,
   FlowId,
   StorageInterface,
   
@@ -58,11 +59,16 @@ export type {
   
   // Configuration
   ConfigurationResponse,
+  AccountConfiguration,
+  SocialAccountConfiguration,
+  MFAConfiguration,
+  UserSessionsConfiguration,
   
   // Authentication Responses
   AuthenticationResponse,
   AuthenticatedResponse,
   NotAuthenticatedResponse,
+  ReauthenticationResponse,
   
   // Email Management
   EmailAddress,
@@ -72,6 +78,7 @@ export type {
   // Phone Management
   PhoneNumber,
   PhoneNumberResponse,
+  PhoneNumbersResponse,
   
   // Password Management
   PasswordResetInfoResponse,
@@ -93,6 +100,7 @@ export type {
   NoTOTPAuthenticatorResponse,
   
   // WebAuthn
+  WebAuthnJSON,
   WebAuthnCredentialCreationOptions,
   WebAuthnCredentialRequestOptions,
   
@@ -105,7 +113,9 @@ export type {
   ErrorResponse,
   ForbiddenResponse,
   ConflictResponse,
+  NotFoundResponse,
   GoneResponse,
+  SessionGoneResponse,
   TooManyRequestsResponse,
   
   // Request Types
