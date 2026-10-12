@@ -13,6 +13,10 @@ This is a React hooks and components library for integrating with django-allauth
 - Install dependencies: `bun install`
 - Add dependency: `bun add <package>`
 
+### Testing
+- Run tests: `bun test` (bun test with happy-dom and @testing-library/react, tests in `test/`)
+- Type check, including the spec fixtures in `test/*.typecheck.ts`: `bun run typecheck`
+
 ### Building
 - Build the package: `bun run build`
 - This creates CommonJS and ESM builds in the `dist` directory
@@ -21,7 +25,7 @@ This is a React hooks and components library for integrating with django-allauth
 ### Publishing
 - The package is published to npm automatically via GitHub Actions when pushing to main
 - Manual publish: `npm publish` (after running `bun run build`)
-- Version is managed in `package.json` (current: 0.12.1)
+- Version is managed in `package.json`
 - Requires NPM_TOKEN secret in GitHub repository settings for automated publishing
 
 ## Architecture
