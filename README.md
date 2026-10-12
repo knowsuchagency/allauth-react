@@ -93,11 +93,13 @@ const {
   isAuthenticated,   // Simple boolean check
   isLoading,        // Loading auth status
   error,            // Auth query error
+  flows,            // Flows from the latest auth response
+  pendingFlow,      // Next step to complete (e.g. mfa_authenticate) or null
   
   // Actions
-  login,            // (credentials) => Promise
+  login,            // (credentials) => Promise<response>
   logout,           // () => Promise
-  signup,           // (credentials) => Promise
+  signup,           // (credentials) => Promise<response>
   
   // Mutation states
   isLoggingIn,      
@@ -132,6 +134,29 @@ function AuthExample() {
   return <Dashboard/>;
 }
 ```
+
+**Example: Two-factor and other pending steps**
+
+When a login needs another step, django-allauth answers with a 401 that lists
+the pending flow instead of an error. `loginError` stays `null` (it only holds
+real errors such as a wrong password), and the pending step shows up in
+`pendingFlow`:
+
+```jsx
+function LoginPage() {
+  const { login, loginError, pendingFlow } = useAuth();
+
+  if (pendingFlow?.id === "mfa_authenticate") {
+    // pendingFlow.types lists the authenticators, e.g. ["totp", "recovery_codes"]
+    return <TwoFactorForm />; // submit the code with useMfaAuthenticate()
+  }
+
+  return <LoginForm onSubmit={login} error={loginError} />;
+}
+```
+
+`login()` and `signup()` also resolve with the server's response, so you can
+check `response.status === 401` and `response.data.flows` right after the call.
 
 ### `useEmailManagement()` - Email Address Management
 
