@@ -375,6 +375,43 @@ function CustomComponent() {
 }
 ```
 
+### Custom HTTP Client
+
+The client sends every request through a `fetch`-shaped function, the global
+`fetch` by default. Pass your own to `AllauthProvider` to use a different
+implementation, or adapt another HTTP client such as Axios:
+
+```tsx
+import axios from "axios";
+import { AllauthProvider, type FetchFunction } from "@knowsuchagency/django-allauth";
+
+// Define it once, outside your components, so the reference stays stable.
+const axiosFetch: FetchFunction = async (url, init) => {
+  const res = await axios.request({
+    url,
+    method: init.method ?? "GET",
+    headers: Object.fromEntries(new Headers(init.headers).entries()),
+    data: init.body,
+    withCredentials: init.credentials === "include",
+    responseType: "text",
+    transformResponse: (body) => body, // keep the raw JSON text
+    validateStatus: () => true,        // let the library handle 4xx responses
+  });
+  return new Response(res.status === 204 ? null : res.data, { status: res.status });
+};
+
+function App() {
+  return (
+    <AllauthProvider baseUrl="https://api.example.com" fetch={axiosFetch}>
+      <YourApp />
+    </AllauthProvider>
+  );
+}
+```
+
+You can also build a client yourself with `createClient({ baseUrl, fetch, ... })`
+and hand it to the provider with `<AllauthProvider client={client}>`.
+
 ### Custom QueryClient Configuration
 
 Provide your own TanStack Query configuration:

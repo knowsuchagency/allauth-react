@@ -28,7 +28,7 @@ export {
 // ============================================================================
 // API and Storage
 // ============================================================================
-export { AllauthClient, initializeClient, getClient } from './lib/api/client';
+export { AllauthClient, createClient, initializeClient, setClient, getClient, type ClientConfig } from './lib/api/client';
 export { 
   ZustandStorage, 
   CookieStorage, 
@@ -49,6 +49,7 @@ export type {
   LoginMethod,
   FlowId,
   StorageInterface,
+  FetchFunction,
   
   // User and Authentication
   User,

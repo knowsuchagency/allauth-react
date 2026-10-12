@@ -531,6 +531,14 @@ export interface ProviderDisconnectRequest {
 // Storage Interface
 // ============================================================================
 
+/**
+ * The HTTP function the client uses for every request. It has the shape of
+ * the standard `fetch`, so any fetch implementation works, and other HTTP
+ * clients (Axios, XHR, ...) can be plugged in with a small adapter that
+ * returns a `Response`.
+ */
+export type FetchFunction = (input: string, init: RequestInit) => Promise<Response>;
+
 export interface StorageInterface {
   getSessionToken(): Promise<string | null>;
   setSessionToken(value: string | null): Promise<void>;

@@ -39,6 +39,7 @@ import type {
   WebAuthnSignupRequest,
   ProviderDisconnectRequest,
   WebAuthnJSON,
+  FetchFunction,
 } from './types';
 import { getStorage } from './storage';
 
@@ -54,13 +55,22 @@ export class AllauthClient {
   private csrfTokenUrl: string;
   private clientPath: string;
   private browserPath: string;
+  private fetchFn: FetchFunction;
 
+  /**
+   * @param fetchFn HTTP function used for every request. Defaults to the
+   *   global `fetch`. Pass your own to use another HTTP client.
+   */
   constructor(
     apiBaseUrl: string = "",
     csrfTokenEndpoint?: string,
     clientType: ClientType = "browser",
-    storage?: StorageInterface
+    storage?: StorageInterface,
+    fetchFn?: FetchFunction
   ) {
+    // Look up the global fetch per call so it is never invoked unbound and
+    // later replacements (polyfills, test stubs) are picked up.
+    this.fetchFn = fetchFn ?? ((input, init) => globalThis.fetch(input, init));
     this.clientPath = apiBaseUrl ? `${apiBaseUrl}/_allauth/${clientType}/v1` : `/_allauth/${clientType}/v1`;
     this.browserPath = apiBaseUrl ? `${apiBaseUrl}/_allauth/browser/v1` : `/_allauth/browser/v1`;
     this.storage = storage || getStorage(clientType, apiBaseUrl);
@@ -79,7 +89,7 @@ export class AllauthClient {
     }
 
     try {
-      const response = await fetch(this.csrfTokenUrl, {
+      const response = await this.fetchFn(this.csrfTokenUrl, {
         method: "GET",
         credentials: "include",
         mode: "cors",
@@ -149,7 +159,7 @@ export class AllauthClient {
       headers.set("X-Session-Token", sessionToken);
     }
 
-    const response = await fetch(url, {
+    const response = await this.fetchFn(url, {
       ...options,
       headers,
       credentials: options.credentials || "include",
@@ -739,22 +749,41 @@ export class AllauthClient {
 // Singleton Management
 // ============================================================================
 
-export function initializeClient(config: {
+export interface ClientConfig {
   baseUrl?: string;
   csrfTokenEndpoint?: string;
   clientType?: ClientType;
   storage?: StorageInterface;
-}): AllauthClient {
+  /** HTTP function used for every request. Defaults to the global `fetch`. */
+  fetch?: FetchFunction;
+}
+
+export function createClient(config: ClientConfig = {}): AllauthClient {
+  const { baseUrl = '', csrfTokenEndpoint, clientType = 'browser', storage, fetch } = config;
+  return new AllauthClient(
+    baseUrl,
+    csrfTokenEndpoint,
+    clientType,
+    storage || getStorage(clientType, baseUrl),
+    fetch
+  );
+}
+
+/**
+ * Creates the shared client on first call and returns it. Later calls return
+ * the existing client unchanged; use setClient() to replace it.
+ */
+export function initializeClient(config: ClientConfig): AllauthClient {
   if (!clientInstance) {
-    const { baseUrl = '', csrfTokenEndpoint, clientType = 'browser', storage } = config;
-    clientInstance = new AllauthClient(
-      baseUrl,
-      csrfTokenEndpoint,
-      clientType,
-      storage || getStorage(clientType, baseUrl)
-    );
+    clientInstance = createClient(config);
   }
   return clientInstance;
+}
+
+/** Replaces the shared client that the hooks use. */
+export function setClient(client: AllauthClient): AllauthClient {
+  clientInstance = client;
+  return client;
 }
 
 export function getClient(): AllauthClient {

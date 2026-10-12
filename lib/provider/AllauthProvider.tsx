@@ -3,8 +3,8 @@ import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query';
-import { initializeClient } from '../api/client';
-import type { ClientType, StorageInterface } from '../api/types';
+import { AllauthClient, createClient, setClient } from '../api/client';
+import type { ClientType, FetchFunction, StorageInterface } from '../api/types';
 
 // ============================================================================
 // Provider Props
@@ -16,6 +16,14 @@ interface AllauthProviderProps {
   baseUrl?: string;
   csrfTokenEndpoint?: string;
   storage?: StorageInterface;
+  /**
+   * HTTP function used for every request (defaults to the global `fetch`).
+   * Use it to route requests through Axios, XHR or a custom fetch.
+   * Pass a stable reference (defined outside the component or memoized).
+   */
+  fetch?: FetchFunction;
+  /** A fully configured client. When given, the options above are ignored. */
+  client?: AllauthClient;
   
   // Query client configuration
   queryClient?: QueryClient;
@@ -65,18 +73,24 @@ export function AllauthProvider({
   baseUrl = '',
   csrfTokenEndpoint,
   storage,
+  fetch,
+  client,
   queryClient,
   children,
 }: AllauthProviderProps): React.ReactElement {
-  // Initialize the AllauthClient singleton
+  // Configure the AllauthClient singleton used by the hooks
   useMemo(() => {
-    initializeClient({
-      baseUrl,
-      csrfTokenEndpoint,
-      clientType,
-      storage,
-    });
-  }, [baseUrl, csrfTokenEndpoint, clientType, storage]);
+    setClient(
+      client ??
+        createClient({
+          baseUrl,
+          csrfTokenEndpoint,
+          clientType,
+          storage,
+          fetch,
+        })
+    );
+  }, [client, baseUrl, csrfTokenEndpoint, clientType, storage, fetch]);
 
   // Create QueryClient if not provided
   const finalQueryClient = useMemo(() => {
